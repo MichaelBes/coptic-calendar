@@ -69,6 +69,14 @@
   .linkrow .btn { padding: 9px 14px; background: var(--ink); color: var(--card); }
   details.alt { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
   details summary { cursor: pointer; color: var(--accent); font-size: 14px; }
+  .how details > summary { list-style: none; display: flex; justify-content: space-between; align-items: center; color: var(--ink); }
+  .how details > summary::-webkit-details-marker { display: none; }
+  .how details > summary::after { content: "Show"; color: var(--accent); font-size: 13px; }
+  .how details[open] > summary::after { content: "Hide"; }
+  .how h2 { margin: 0; }
+  .how ol { margin: 10px 0 6px; padding-left: 20px; } .how li { margin: 4px 0; }
+  .how p { margin: 8px 0 0; font-size: 14px; color: var(--muted); } .how p b { color: var(--ink); }
+  .danger { color: #b3261e !important; }
   .linkbtn { background: none; border: 0; color: var(--accent); font: inherit; font-size: 13px; padding: 0; cursor: pointer; text-decoration: underline; }
   .range { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
   select { padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; }
@@ -105,6 +113,21 @@
     <div class="today" id="today"></div>
   </header>
 
+  <section class="how">
+    <details id="how" open>
+      <summary><h2>How it works</h2></summary>
+      <ol>
+        <li><b>Pick</b> your saints and the feasts, fasts and other days you want.</li>
+        <li>Tap <b>Create my calendar</b>, then <b>Add to Apple Calendar</b> or <b>Add to Google Calendar</b>.</li>
+        <li><b>That's it.</b> Your calendar fills in for years ahead and stays up to date by itself.</li>
+      </ol>
+      <p><b>Change your saints anytime:</b> open any Coptic event in your calendar and tap its link (on iPhone, the link with <b>Open</b> under Location). Change your picks, tap <b>Save</b>, and your calendar updates within a few hours. There's no need to add it again.</p>
+      <p><b>Evening reminders:</b> the Coptic day begins at sunset, so you can get a reminder the night before. On iPhone, turn <b>Remove Alerts</b> off when you subscribe.</p>
+      <p><b>Google Calendar:</b> adding it works best from a computer. Google's phone app can't add calendars by link.</p>
+      <p><b>Remove it:</b> open your calendar here and tap <b>Delete my calendar</b> at the bottom, then unsubscribe in your calendar app.</p>
+    </details>
+  </section>
+
   <section>
     <h2>Church calendar</h2>
     <p class="sub">Feasts and fasts, with movable dates worked out from Pascha.</p>
@@ -138,6 +161,10 @@
 
     <div id="subBox">
       <button class="btn primary wide" id="subscribe">Create my calendar</button>
+      <div class="note" id="deleted" hidden><b>Your calendar was deleted.</b> Its events will disappear from your calendar app within a day. To remove it completely:
+        <ul style="margin:6px 0 0;padding-left:18px"><li><b>iPhone:</b> open any Coptic event → <b>Unsubscribe from This Calendar</b>.</li>
+        <li><b>Google:</b> on calendar.google.com, find it under <b>Other calendars</b> → ⋮ → <b>Settings</b> → <b>Unsubscribe</b>.</li></ul>
+        <p style="margin:8px 0 0">You can make a new calendar anytime below.</p></div>
       <p class="sub center" id="subStatus">Your calendar stays up to date. To change your saints later, open any Coptic event in your calendar and tap Change your saints.</p>
       <div id="subLinks" hidden>
         <div class="btns">
@@ -153,7 +180,10 @@
             <p style="margin:6px 0">Google's phone app can't subscribe to calendars. On a computer, tap <b>Add to Google Calendar</b> above, or go to calendar.google.com → <b>Other calendars +</b> → <b>From URL</b> and paste this link:</p>
             <div class="linkrow"><input readonly id="gFeed" aria-label="Google calendar link"><button class="btn" id="copyFeed">Copy</button></div>
           </details>
-          <button class="linkbtn" id="forget" style="margin-top:10px">Start a separate calendar on this device</button>
+          <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:10px">
+            <button class="linkbtn" id="forget">Start a separate calendar on this device</button>
+            <button class="linkbtn danger" id="del">Delete my calendar</button>
+          </div>
         </div>
       </div>
     </div>
@@ -931,7 +961,7 @@
     try {
       const body = { picks: picks() };
       const created = !sub;
-      if (!sub) { const r = await api("POST", "/api/subs", body); sub = { id: r.id, key: r.key }; }
+      if (!sub) { const r = await api("POST", "/api/subs", body); sub = { id: r.id, key: r.key }; $("deleted").hidden = true; }
       else await api("PUT", `/api/subs/${sub.id}?key=${encodeURIComponent(sub.key)}`, body);
       savedJSON = JSON.stringify(body.picks); remember();
       toast(created ? "Calendar created. Now tap Add to Apple or Google Calendar" : "Saved. Your calendar will update by itself");
@@ -959,6 +989,18 @@
   $("subscribe").onclick = saveSub;
   $("copyEdit").onclick = async () => { try { await navigator.clipboard.writeText($("editLink").value); toast("Edit link copied"); } catch (e) { $("editLink").select(); } };
   $("copyFeed").onclick = async () => { try { await navigator.clipboard.writeText($("gFeed").value); toast("Calendar link copied"); } catch (e) { $("gFeed").select(); } };
+  let delArmed = 0;
+  $("del").onclick = async () => {
+    if (!sub) return;
+    if (Date.now() - delArmed > 4000) { delArmed = Date.now(); $("del").textContent = "Tap again to delete"; setTimeout(() => ($("del").textContent = "Delete my calendar"), 4000); return; }
+    $("del").disabled = true;
+    try {
+      await api("DELETE", `/api/subs/${sub.id}?key=${encodeURIComponent(sub.key)}`);
+      sub = null; savedJSON = ""; remember();
+      $("deleted").hidden = false; $("deleted").scrollIntoView({ behavior: "smooth", block: "center" });
+    } catch (e) { toast(e.message); }
+    $("del").disabled = false; $("del").textContent = "Delete my calendar"; update();
+  };
   $("forget").onclick = () => {
     if (!sub) return;
     sub = null; savedJSON = ""; remember();
@@ -968,6 +1010,7 @@
   window.addEventListener("beforeunload", (e) => { if (dirty()) { e.preventDefault(); e.returnValue = ""; } });
 
   renderGroups(); renderList(); update();
+  if (sub || new URLSearchParams(location.search).get("edit")) $("how").open = false;
   if (API) {
     const edit = new URLSearchParams(location.search).get("edit");
     if (edit && /^[a-z0-9]+\.[a-z0-9]+$/.test(edit)) {
