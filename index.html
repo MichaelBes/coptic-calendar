@@ -95,6 +95,16 @@
   .linkrow .btn { padding: 9px 14px; background: var(--ink); color: var(--card); }
   details.alt { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
   details summary { cursor: pointer; color: var(--accent); font-size: 14px; }
+  .faq > details > summary { list-style: none; display: flex; justify-content: space-between; align-items: center; cursor: pointer; color: var(--ink); }
+  .faq > details > summary::-webkit-details-marker { display: none; }
+  .faq > details > summary::after { content: "Show"; color: var(--accent); font-size: 13px; }
+  .faq > details[open] > summary::after { content: "Hide"; }
+  .faq h2 { margin: 0; }
+  .faq h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 20px 0 6px; font-weight: 600; }
+  .faq .q { border-top: 1px solid var(--line); padding: 10px 0; }
+  .faq .q summary { color: var(--ink); font-size: 15px; font-weight: 500; }
+  .faq .q p { margin: 8px 0 2px; font-size: 14px; color: var(--muted); }
+  .faq .q p b { color: var(--ink); }
   .how details > summary { list-style: none; display: flex; justify-content: space-between; align-items: center; color: var(--ink); }
   .how details > summary::-webkit-details-marker { display: none; }
   .how details > summary::after { content: "Show"; color: var(--accent); font-size: 13px; }
@@ -234,6 +244,48 @@
       <div class="note" id="howto" hidden></div>
     </details>
     <div class="preview" id="preview"></div>
+  </section>
+
+  <section class="faq" id="about">
+    <details id="faqBox">
+      <summary><h2>About &amp; common questions</h2></summary>
+
+      <details class="q"><summary>How did this start?</summary>
+        <p>In our community, the same questions come up every year. When does Great Lent start? When is Coptic Easter? When does the Nativity Fast begin? What day is the feast of Archangel Michael, St. Mary or St. George? The answers are usually spread across church bulletins, apps and printed calendars, and they're easy to miss.</p>
+        <p>So we built a simple way to put the Coptic calendar where people already look every day: their own phone calendar. Pick the saints and the feasts and fasts that matter to you, add them to Apple Calendar or Google Calendar once, and they stay up to date, year after year.</p></details>
+
+      <h3>Fast and feast dates</h3>
+      <details class="q"><summary>When does Great Lent start this year?</summary>
+        <p data-when="lent">Great Lent begins on a Monday, 55 days before Coptic Easter, including Holy Week.</p></details>
+      <details class="q"><summary>When is Coptic Easter (the Feast of the Resurrection)?</summary>
+        <p data-when="pascha">Coptic Easter follows the Alexandrian calculation, so it often falls later than Western Easter.</p></details>
+      <details class="q"><summary>When does the Nativity Fast start?</summary>
+        <p data-when="nativityFast">The Nativity Fast begins on Hathor 16 and lasts 43 days, until Coptic Christmas.</p></details>
+      <details class="q"><summary>When is Coptic Christmas?</summary>
+        <p data-when="christmas">The Coptic Orthodox Church celebrates the Nativity on January 7.</p></details>
+      <details class="q"><summary>When is the Fast of Nineveh (Jonah's Fast)?</summary>
+        <p data-when="nineveh">The Fast of Nineveh is three days, Monday to Wednesday, two weeks before Great Lent.</p></details>
+      <details class="q"><summary>When is the Apostles' Fast?</summary>
+        <p data-when="apostles">The Apostles' Fast begins the day after Pentecost and ends on Epip 4, the eve of the Feast of the Apostles.</p></details>
+      <details class="q"><summary>When is the Fast of St. Mary?</summary>
+        <p data-when="stmary">The Fast of St. Mary runs from Mesori 1 to Mesori 15 (August 7–21), ending with the Feast of the Assumption.</p></details>
+      <details class="q"><summary>What is today's Coptic date?</summary>
+        <p data-when="today">The Coptic calendar has 12 months of 30 days and a short 13th month called Nasie.</p></details>
+
+      <h3>Using the calendar</h3>
+      <details class="q"><summary>Does it work with iPhone and Google Calendar?</summary>
+        <p>Yes. Tap Add to Apple Calendar on an iPhone, iPad or Mac, or Add to Google Calendar for Google (works best from a computer). It also works with any calendar app that can subscribe to a calendar link, like Outlook.</p></details>
+      <details class="q"><summary>Will my calendar update when the dates change each year?</summary>
+        <p>Yes. Movable feasts and fasts like Great Lent, Coptic Easter and the Apostles' Fast are worked out every year, and your calendar always shows the next two years ahead. You never need to add it again.</p></details>
+      <details class="q"><summary>What is the Joyous 29th?</summary>
+        <p>On the 29th of each Coptic month, the Church commemorates the Annunciation, the Nativity and the Resurrection together. It isn't observed in the months of Tobi and Meshir.</p></details>
+      <details class="q"><summary>Why does the reminder come the night before?</summary>
+        <p>In the Coptic Church, the day begins at sunset, so a feast is celebrated starting the evening before, beginning with Vespers. The reminder lets you know the night it begins.</p></details>
+      <details class="q"><summary>Is it free?</summary>
+        <p>Yes. It's free, with no account or sign-up.</p></details>
+      <details class="q"><summary>How do I change or remove my saints later?</summary>
+        <p>Open any Coptic event in your calendar and tap its link. Your picks open here, where you can change them and tap Save, or tap Delete my calendar at the bottom.</p></details>
+    </details>
   </section>
 
   <footer><p style="max-width:520px;margin:0 auto 10px">Coptic Feast Calendar is a free tool for Coptic Orthodox Christians. It adds the feasts of the saints from the Synaxarium, the feasts of the Lord, and fasts like Great Lent and the Nativity Fast to Apple Calendar or Google Calendar.</p>Saint summaries from the Synaxarium. Dates are computed, so please check them against your church's calendar.
@@ -1036,6 +1088,38 @@
   window.addEventListener("beforeunload", (e) => { if (dirty()) { e.preventDefault(); e.returnValue = ""; } });
 
   renderGroups(); renderList(); update();
+  // Dates in the questions section, always showing what's coming up next
+  (function () {
+    const fmt = (d) => d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
+    const add = (d, n) => new Date(d.getTime() + n * 86400e3);
+    const y0 = now.getFullYear();
+    function nextMovable(off, endOff) {
+      for (let y = y0; y <= y0 + 2; y++) {
+        const d = add(C.pascha(y), off), end = add(C.pascha(y), endOff == null ? off : endOff);
+        if (end >= todayUTC) return { y, d, end };
+      }
+    }
+    function nextFixed(cm, cd) { return C.fixedOccurrences(cm, cd, y0, y0 + 2).find((o) => o.date >= todayUTC); }
+    const set = (k, html) => { const el = document.querySelector(`[data-when="${k}"]`); if (el) el.innerHTML = html + " " + el.textContent; };
+    const L = nextMovable(-55, -1), L2 = add(C.pascha(L.y + 1), -55);
+    set("lent", `<b>Great Lent ${L.y} ${L.d < todayUTC ? "began" : "begins"} ${fmt(L.d)}</b>, and Coptic Easter is ${fmt(C.pascha(L.y))}. In ${L.y + 1}, it begins ${fmt(L2)}.`);
+    const P = nextMovable(0);
+    set("pascha", `<b>Coptic Easter ${P.y} is ${fmt(P.d)}.</b> In ${P.y + 1}, it's ${fmt(C.pascha(P.y + 1))}.`);
+    const nfEnd = nextFixed(4, 28); const nfStart = C.fixedOccurrences(3, 16, y0 - 1, y0 + 2).filter((o) => o.date <= nfEnd.date).pop();
+    set("nativityFast", `<b>The Nativity Fast ${nfStart.date < todayUTC ? "began" : "begins"} ${fmt(nfStart.date)}</b> and ends ${fmt(nfEnd.date)}.`);
+    const xm = [y0, y0 + 1].map((y) => new Date(Date.UTC(y, 0, 7))).find((d) => d >= todayUTC);
+    set("christmas", `<b>The next Coptic Christmas is ${fmt(xm)}.</b>`);
+    const N = nextMovable(-69, -67);
+    set("nineveh", `<b>The next Fast of Nineveh is ${fmt(N.d)} to ${fmt(N.end)}.</b>`);
+    const A = (function () { for (let y = y0; y <= y0 + 2; y++) { const s = add(C.pascha(y), 50), e = C.fixedOccurrences(11, 4, y, y)[0].date; if (e >= todayUTC) return { s, e }; } })();
+    set("apostles", `<b>The next Apostles' Fast is ${fmt(A.s)} to ${fmt(A.e)}.</b>`);
+    const M1 = nextFixed(12, 15); const M0 = C.fixedOccurrences(12, 1, M1.date.getUTCFullYear(), M1.date.getUTCFullYear())[0];
+    set("stmary", `<b>The next Fast of St. Mary is ${fmt(M0.date)} to ${fmt(M1.date)}.</b>`);
+    const t = $("today").textContent.replace(/^Today is /, "");
+    if (t) set("today", `<b>Today is ${t}</b> (Anno Martyrum, the Year of the Martyrs).`);
+  })();
+  if (location.hash === "#about") $("faqBox").open = true;
+
   if (sub || new URLSearchParams(location.search).get("edit")) $("how").open = false;
   if (API) {
     const edit = new URLSearchParams(location.search).get("edit");
