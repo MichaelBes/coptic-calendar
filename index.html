@@ -180,7 +180,8 @@
     <div class="preview" id="preview"></div>
   </section>
 
-  <footer>Saint summaries from the Synaxarium. Dates are computed, so please check them against your church's calendar.</footer>
+  <footer>Saint summaries from the Synaxarium. Dates are computed, so please check them against your church's calendar.
+    <div style="margin-top:10px"><a href="dev.html" style="color:inherit;opacity:.7">Developer</a></div></footer>
 </div>
 
 <div class="bar"><div class="in"><div id="barText"></div><button class="btn" id="jump">Add</button></div></div>
@@ -685,7 +686,8 @@
     return lines.filter((l) => l !== null).map(fold).join("\r\n") + "\r\n";
   }
 
-  const api = { MONTHS, CATEGORIES, copticToDate, pascha, fixedOccurrences, flattenSaints, buildGroups, groupIds, buildSeries, matches, buildEvents, toICS, ymd, copticLabel };
+  const GROUP_NAMES = GROUPS.map((g) => g[0]);
+  const api = { MONTHS, CATEGORIES, GROUP_NAMES, copticToDate, pascha, fixedOccurrences, flattenSaints, buildGroups, groupIds, buildSeries, matches, buildEvents, toICS, ymd, copticLabel };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.CopticCore = api;
 })(typeof window !== "undefined" ? window : globalThis);
