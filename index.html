@@ -285,10 +285,13 @@
         <p>Yes. It's free, with no account or sign-up.</p></details>
       <details class="q"><summary>How do I change or remove my saints later?</summary>
         <p>Open any Coptic event in your calendar and tap its link. Your picks open here, where you can change them and tap Save, or tap Delete my calendar at the bottom.</p></details>
+      <details class="q"><summary>Found a mistake or have a suggestion?</summary>
+        <p>Please let us know! If a date looks wrong, a saint is missing, or you have an idea, email <a class="email-link" href="#">contact at copticcalendar dot com</a>. We read every message.</p></details>
     </details>
   </section>
 
   <footer><p style="max-width:520px;margin:0 auto 10px">Coptic Feast Calendar is a free tool for Coptic Orthodox Christians. It adds the feasts of the saints from the Synaxarium, the feasts of the Lord, and fasts like Great Lent and the Nativity Fast to Apple Calendar or Google Calendar.</p>Saint summaries from the Synaxarium. Dates are computed, so please check them against your church's calendar.
+    <div style="margin-top:8px">Questions, corrections or ideas? <a class="email-link" href="#" style="color:inherit">contact at copticcalendar dot com</a></div>
     <div style="margin-top:10px"><a href="dev.html" style="color:inherit;opacity:.7">Developer</a></div></footer>
 </div>
 
@@ -1119,6 +1122,12 @@
     if (t) set("today", `<b>Today is ${t}</b> (Anno Martyrum, the Year of the Martyrs).`);
   })();
   if (location.hash === "#about") $("faqBox").open = true;
+
+  // Contact address, put together here so spam bots scanning the page don't pick it up
+  (function () {
+    const addr = ["contact", "copticcalendar.com"].join("@");
+    document.querySelectorAll(".email-link").forEach((a) => { a.href = "mailto:" + addr; a.textContent = addr; });
+  })();
 
   if (sub || new URLSearchParams(location.search).get("edit")) $("how").open = false;
   if (API) {
