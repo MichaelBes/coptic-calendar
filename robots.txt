@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /dev.html
+Disallow: /classic.html
+
+Sitemap: https://copticcalendar.com/sitemap.xml
