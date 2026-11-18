@@ -144,6 +144,7 @@
           <a class="btn apple" id="subApple" href="#">Add to Apple Calendar</a>
           <a class="btn google" id="subGoogle" href="#" target="_blank" rel="noopener">Add to Google Calendar</a>
         </div>
+        <p class="sub center" id="alertTip" style="margin:10px 0 0"><b>iPhone tip:</b> on Apple's Subscribe screen, turn <b>Remove Alerts</b> off so your evening reminders come through.</p>
         <div class="note">
           <b>Your edit link</b>
           <p style="margin:4px 0 8px">Use this link to change your saints later. Your calendar updates by itself, with no re-adding. You don't need to save it: every event in your Coptic calendar has a <b>Change your saints</b> link. Keep it private, since anyone with it can change your picks.</p>
@@ -910,6 +911,7 @@
       : d ? "You have changes. Save them and your calendar updates by itself within a few hours."
       : "Your calendar is up to date. Changes you save here show up on your calendar within a few hours.";
     $("subLinks").hidden = !has;
+    $("alertTip").hidden = !state.eve;
     if (has) {
       const feed = (p) => `${API}/feed/${sub.id}/${p}.ics`;
       const webcal = (u) => u.replace(/^https?:/, "webcal:");
