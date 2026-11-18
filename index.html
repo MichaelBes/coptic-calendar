@@ -60,6 +60,15 @@
   .radios label { display: block; padding: 10px 12px 10px 36px; border: 1px solid var(--line); border-radius: 12px; position: relative; cursor: pointer; font-size: 14px; }
   .radios input { position: absolute; left: 12px; top: 12px; accent-color: var(--accent); }
   .radios span { display: block; color: var(--muted); font-size: 12.5px; }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.wide { width: 100%; font-size: 16px; }
+  a.btn { text-decoration: none; text-align: center; }
+  .center { text-align: center; margin: 8px 0 12px; }
+  .linkrow { display: flex; gap: 8px; }
+  .linkrow input { flex: 1; min-width: 0; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font: inherit; font-size: 13px; }
+  .linkrow .btn { padding: 9px 14px; background: var(--ink); color: var(--card); }
+  details.alt { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+  details summary { cursor: pointer; color: var(--accent); font-size: 14px; }
   .linkbtn { background: none; border: 0; color: var(--accent); font: inherit; font-size: 13px; padding: 0; cursor: pointer; text-decoration: underline; }
   .range { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
   select { padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; }
@@ -114,33 +123,59 @@
   <section id="add">
     <h2>Add to calendar</h2>
     <p class="sub" id="summary"></p>
-    <div class="range">
-      <label for="years">Include</label>
-      <select id="years">
-        <option value="1">through the end of this year</option>
-        <option value="3">through 3 years</option>
-        <option value="5" selected>through 5 years</option>
-        <option value="10">through 10 years</option>
-      </select>
-    </div>
     <label class="toggle" style="border-top:0;padding-top:0"><span class="t"><b>Remind me the evening before</b><span>Since the Coptic day begins at sunset</span></span>
       <span class="sw"><input type="checkbox" id="eve"><i></i></span></label>
     <div class="range" id="eveOpts" hidden>
       <label for="eveHour">Remind at</label>
       <select id="eveHour"><option value="17">5:00 pm</option><option value="18">6:00 pm</option><option value="19">7:00 pm</option></select>
       <div class="sub" style="margin:4px 0 0;width:100%"><b>Apple Calendar:</b> an alert the evening before each day.</div>
-      <div class="sub" style="margin:4px 0 0;width:100%"><b>Google Calendar</b> drops alerts from added calendar files, so pick one:</div>
+      <div class="sub" style="margin:4px 0 0;width:100%"><b>Google Calendar</b> drops alerts from added calendars, so pick one:</div>
       <div class="radios" id="gmode">
         <label><input type="radio" name="gmode" value="events"> Add a short "Eve of…" entry that evening <span>Nothing to set up</span></label>
         <label><input type="radio" name="gmode" value="self"> I'll set Google's reminder myself <span>No extra entries, one setting to change in Google</span></label>
       </div>
     </div>
-    <div class="btns">
-      <button class="btn apple" id="apple">Apple Calendar</button>
-      <button class="btn google" id="google">Google Calendar</button>
-      <button class="btn ghost" id="copy">Copy calendar file text (.ics)</button>
+
+    <div id="subBox">
+      <button class="btn primary wide" id="subscribe">Create my calendar</button>
+      <p class="sub center" id="subStatus">Your calendar stays up to date. To change your saints later, open any Coptic event in your calendar and tap Change your saints.</p>
+      <div id="subLinks" hidden>
+        <div class="btns">
+          <a class="btn apple" id="subApple" href="#">Add to Apple Calendar</a>
+          <a class="btn google" id="subGoogle" href="#" target="_blank" rel="noopener">Add to Google Calendar</a>
+        </div>
+        <div class="note">
+          <b>Your edit link</b>
+          <p style="margin:4px 0 8px">Use this link to change your saints later. Your calendar updates by itself, with no re-adding. You don't need to save it: every event in your Coptic calendar has a <b>Change your saints</b> link. Keep it private, since anyone with it can change your picks.</p>
+          <div class="linkrow"><input readonly id="editLink" aria-label="Your edit link"><button class="btn" id="copyEdit">Copy</button></div>
+          <details style="margin-top:10px"><summary>Using Google Calendar on a phone?</summary>
+            <p style="margin:6px 0">Google's phone app can't subscribe to calendars. On a computer, tap <b>Add to Google Calendar</b> above, or go to calendar.google.com → <b>Other calendars +</b> → <b>From URL</b> and paste this link:</p>
+            <div class="linkrow"><input readonly id="gFeed" aria-label="Google calendar link"><button class="btn" id="copyFeed">Copy</button></div>
+          </details>
+          <button class="linkbtn" id="forget" style="margin-top:10px">Start a separate calendar on this device</button>
+        </div>
+      </div>
     </div>
-    <div class="note" id="howto" hidden></div>
+
+    <details class="alt" id="dlBox">
+      <summary>Or download a one-time file instead</summary>
+      <p class="sub" style="margin-top:8px">A file is a snapshot. It won't update if you change your picks later.</p>
+      <div class="range">
+        <label for="years">Include</label>
+        <select id="years">
+          <option value="1">through the end of this year</option>
+          <option value="3">through 3 years</option>
+          <option value="5" selected>through 5 years</option>
+          <option value="10">through 10 years</option>
+        </select>
+      </div>
+      <div class="btns">
+        <button class="btn apple" id="apple">Apple Calendar file</button>
+        <button class="btn google" id="google">Google Calendar file</button>
+        <button class="btn ghost" id="copy">Copy calendar file text (.ics)</button>
+      </div>
+      <div class="note" id="howto" hidden></div>
+    </details>
     <div class="preview" id="preview"></div>
   </section>
 
@@ -150,6 +185,7 @@
 <div class="bar"><div class="in"><div id="barText"></div><button class="btn" id="jump">Add</button></div></div>
 <div class="toast" id="toast"></div>
 
+<script src="config.js"></script>
 <script>
 // Coptic calendar core: date math, feasts, fasts, saint groups, .ics output.
 // Works in the browser (window.CopticCore) and in Node (module.exports).
@@ -506,6 +542,16 @@
     return normalize(query).split(" ").filter(Boolean).every((w) => saint._norm.includes(w));
   }
 
+  // Ids for just the named groups (cheaper than building every group)
+  function groupIds(saints, names) {
+    const out = new Set();
+    for (const [name, re, excl] of GROUPS) {
+      if (!names.includes(name)) continue;
+      for (const s of saints) if (re.test(s.source) && !(excl && excl.test(s.source))) out.add(s.id);
+    }
+    return out;
+  }
+
   function saintEvents(saints, ids, startYear, endYear) {
     const set = new Set(ids);
     const ev = [];
@@ -537,13 +583,22 @@
   function icsEscape(s) {
     return String(s).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
   }
+  const u8len = (cp) => (cp < 0x80 ? 1 : cp < 0x800 ? 2 : cp < 0x10000 ? 3 : 4);
   function fold(line) {
     // Fold at 75 octets without splitting UTF-8 characters
-    const enc = new TextEncoder();
-    if (enc.encode(line).length <= 75) return line;
+    if (line.length <= 25) return line;
+    if (!/[^\x00-\x7f]/.test(line)) { // ASCII fast path
+      if (line.length <= 75) return line;
+      const parts = [line.slice(0, 75)];
+      for (let i = 75; i < line.length; i += 74) parts.push(line.slice(i, i + 74));
+      return parts.join("\r\n ");
+    }
+    let total = 0;
+    for (const ch of line) total += u8len(ch.codePointAt(0));
+    if (total <= 75) return line;
     const parts = []; let cur = ""; let len = 0; let limit = 75;
     for (const ch of line) {
-      const n = enc.encode(ch).length;
+      const n = u8len(ch.codePointAt(0));
       if (len + n > limit) { parts.push(cur); cur = ""; len = 0; limit = 74; }
       cur += ch; len += n;
     }
@@ -560,6 +615,9 @@
   //   events – Google (which drops alerts from imported files): one short timed "Eve of…" entry per evening
   function toICS(events, calName, opts) {
     const eve = opts && opts.eve;
+    // Subscribed feeds carry the owner's edit link on every event, so it can't get lost
+    const link = opts && opts.editUrl;
+    const footer = link ? "Change your saints: " + link : "";
     const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
     const d8 = (d) => ymd(d).replace(/-/g, "");
     const hh = (h) => String(h).padStart(2, "0");
@@ -567,8 +625,14 @@
       "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Coptic Feast Calendar//EN", "CALSCALE:GREGORIAN",
       "METHOD:PUBLISH", "X-WR-CALNAME:" + icsEscape(calName || "Coptic Calendar"),
     ];
+    // Subscribed feeds: ask calendar apps to check for updates every few hours
+    if (link) lines.push("X-WR-CALDESC:" + icsEscape("Change your saints: " + link));
+    if (opts && opts.refreshHours) lines.push(
+      "REFRESH-INTERVAL;VALUE=DURATION:PT" + opts.refreshHours + "H",
+      "X-PUBLISHED-TTL:PT" + opts.refreshHours + "H"
+    );
     for (const e of events) {
-      const desc = [e.coptic ? "Coptic date: " + e.coptic : "", e.desc].filter(Boolean).join("\n\n");
+      const desc = [e.coptic ? "Coptic date: " + e.coptic : "", e.desc, footer].filter(Boolean).join("\n\n");
       lines.push(
         "BEGIN:VEVENT",
         "UID:" + d8(e.date) + "-" + hash(e.title) + "@coptic-feast-calendar",
@@ -577,6 +641,7 @@
         "DTEND;VALUE=DATE:" + d8(addDays(e.date, 1)),
         "SUMMARY:" + icsEscape(e.title),
         desc ? "DESCRIPTION:" + icsEscape(desc) : null,
+        link ? "URL:" + link : null,
         "TRANSP:TRANSPARENT"
       );
       if (eve && eve.mode === "alarm") lines.push(
@@ -608,7 +673,8 @@
           "DTSTART:" + d8(ev) + "T" + hh(eve.hour) + "0000",
           "DTEND:" + d8(ev) + "T" + hh(eve.hour) + "3000",
           "SUMMARY:" + icsEscape(summary),
-          "DESCRIPTION:" + icsEscape("Tomorrow:\n• " + titles.join("\n• ") + (feasts.length ? "\n\nThe Coptic day begins at Vespers tonight." : "")),
+          "DESCRIPTION:" + icsEscape("Tomorrow:\n• " + titles.join("\n• ") + (feasts.length ? "\n\nThe Coptic day begins at Vespers tonight." : "") + (footer ? "\n\n" + footer : "")),
+          link ? "URL:" + link : null,
           "TRANSP:TRANSPARENT",
           "END:VEVENT"
         );
@@ -618,7 +684,7 @@
     return lines.filter((l) => l !== null).map(fold).join("\r\n") + "\r\n";
   }
 
-  const api = { MONTHS, CATEGORIES, copticToDate, pascha, fixedOccurrences, flattenSaints, buildGroups, buildSeries, matches, buildEvents, toICS, ymd, copticLabel };
+  const api = { MONTHS, CATEGORIES, copticToDate, pascha, fixedOccurrences, flattenSaints, buildGroups, groupIds, buildSeries, matches, buildEvents, toICS, ymd, copticLabel };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.CopticCore = api;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -763,10 +829,10 @@
     save();
     const ev = events();
     const nSaints = selectedIds().size;
-    const yrs = `today through ${now.getFullYear() + state.years - 1}`;
-    $("summary").textContent = `${ev.length} events over ${yrs} · ${nSaints} saint commemorations · ${state.cats.length} Church calendar options`;
-    $("barText").innerHTML = `<b>${ev.length}</b> events ready`;
+    const yearAhead = ev.filter((e) => e.date - todayUTC < 365 * 86400e3).length;
+    $("summary").textContent = `${yearAhead} events in the next 12 months · ${nSaints} saint days · ${state.cats.length} Church calendar options`;
     $("apple").disabled = $("google").disabled = $("copy").disabled = !ev.length;
+    renderSub(ev.length);
 
     const upcoming = ev.slice(0, 25);
     let html = "";
@@ -796,11 +862,11 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   }
   $("eve").checked = state.eve; $("eveHour").value = String(state.eveHour); $("eveOpts").hidden = !state.eve;
-  $("eve").addEventListener("change", (e) => { state.eve = e.target.checked; $("eveOpts").hidden = !state.eve; save(); });
-  $("eveHour").addEventListener("change", (e) => { state.eveHour = +e.target.value; save(); });
+  $("eve").addEventListener("change", (e) => { state.eve = e.target.checked; $("eveOpts").hidden = !state.eve; update(); });
+  $("eveHour").addEventListener("change", (e) => { state.eveHour = +e.target.value; update(); });
   document.querySelectorAll('[name=gmode]').forEach((r) => {
     r.checked = r.value === state.gmode;
-    r.addEventListener("change", () => { state.gmode = r.value; save(); });
+    r.addEventListener("change", () => { state.gmode = r.value; update(); });
   });
   function googleReminderSteps() {
     if (!state.eve || state.gmode !== "self") return "";
@@ -820,9 +886,92 @@
     try { await navigator.clipboard.writeText(icsText("apple")); toast("Calendar file text copied"); }
     catch (e) { toast("Couldn't copy here"); }
   };
-  $("jump").onclick = () => $("add").scrollIntoView({ behavior: "smooth" });
+  // ---------- Subscriptions (live calendar that updates itself) ----------
+  const API = ((window.CFC_CONFIG && window.CFC_CONFIG.api) || "").replace(/\/+$/, "");
+  let sub = null, savedJSON = "", busy = false;
+  try { sub = JSON.parse(localStorage.getItem("cfc-sub") || "null"); savedJSON = localStorage.getItem("cfc-saved") || ""; } catch (e) {}
+  const picks = () => ({ cats: state.cats, groups: state.groups, ids: state.ids, eve: { on: state.eve, hour: state.eveHour, gmode: state.gmode } });
+  const dirty = () => !!sub && JSON.stringify(picks()) !== savedJSON;
+  function remember() {
+    try { localStorage.setItem("cfc-sub", JSON.stringify(sub)); localStorage.setItem("cfc-saved", savedJSON); } catch (e) {}
+  }
+  async function api(method, path, body) {
+    const res = await fetch(API + path, { method, headers: body ? { "Content-Type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Something went wrong (" + res.status + ")");
+    return data;
+  }
+  function renderSub(n) {
+    if (!API) { $("subBox").hidden = true; $("dlBox").open = true; $("barText").innerHTML = `<b>${n}</b> events ready`; return; }
+    const has = !!sub, d = dirty();
+    $("subscribe").textContent = busy ? "Saving…" : !has ? "Create my calendar" : d ? "Save changes" : "Saved ✓";
+    $("subscribe").disabled = busy || !n || (has && !d);
+    $("subStatus").textContent = !has ? "Your calendar stays up to date. To change your saints later, open any Coptic event in your calendar and tap Change your saints."
+      : d ? "You have changes. Save them and your calendar updates by itself within a few hours."
+      : "Your calendar is up to date. Changes you save here show up on your calendar within a few hours.";
+    $("subLinks").hidden = !has;
+    if (has) {
+      const feed = (p) => `${API}/feed/${sub.id}/${p}.ics`;
+      const webcal = (u) => u.replace(/^https?:/, "webcal:");
+      $("subApple").href = webcal(feed("apple"));
+      $("subGoogle").href = "https://calendar.google.com/calendar/render?cid=" + encodeURIComponent(webcal(feed("google")));
+      $("gFeed").value = feed("google");
+      $("editLink").value = location.origin + location.pathname + "?edit=" + sub.id + "." + sub.key;
+    }
+    $("barText").innerHTML = !has ? `<b>${n}</b> events ready` : d ? "<b>Unsaved changes</b>" : "Calendar up to date ✓";
+    $("jump").textContent = d ? "Save" : "Add";
+  }
+  async function saveSub() {
+    if (busy) return;
+    busy = true; update();
+    try {
+      const body = { picks: picks() };
+      const created = !sub;
+      if (!sub) { const r = await api("POST", "/api/subs", body); sub = { id: r.id, key: r.key }; }
+      else await api("PUT", `/api/subs/${sub.id}?key=${encodeURIComponent(sub.key)}`, body);
+      savedJSON = JSON.stringify(body.picks); remember();
+      toast(created ? "Calendar created. Now tap Add to Apple or Google Calendar" : "Saved. Your calendar will update by itself");
+    } catch (e) { toast(e.message); }
+    busy = false; update();
+  }
+  async function loadSub(id, key, fromLink) {
+    try {
+      const r = await api("GET", `/api/subs/${id}?key=${encodeURIComponent(key)}`);
+      sub = { id, key };
+      Object.assign(state, { cats: r.picks.cats, groups: r.picks.groups, ids: r.picks.ids,
+        eve: r.picks.eve.on, eveHour: r.picks.eve.hour, gmode: r.picks.eve.gmode });
+      savedJSON = JSON.stringify(picks()); remember();
+      // Refresh the controls to match the saved picks
+      document.querySelectorAll("[data-cat]").forEach((el) => (el.checked = state.cats.includes(el.dataset.cat)));
+      $("eve").checked = state.eve; $("eveOpts").hidden = !state.eve; $("eveHour").value = String(state.eveHour);
+      document.querySelectorAll("[name=gmode]").forEach((el) => (el.checked = el.value === state.gmode));
+      if (fromLink) toast("Your calendar is loaded. Make changes and tap Save.");
+    } catch (e) {
+      if (fromLink) toast("That edit link didn't work: " + e.message);
+      else if (/not found/i.test(e.message)) { sub = null; savedJSON = ""; remember(); }
+    }
+    renderGroups(); renderList(); update();
+  }
+  $("subscribe").onclick = saveSub;
+  $("copyEdit").onclick = async () => { try { await navigator.clipboard.writeText($("editLink").value); toast("Edit link copied"); } catch (e) { $("editLink").select(); } };
+  $("copyFeed").onclick = async () => { try { await navigator.clipboard.writeText($("gFeed").value); toast("Calendar link copied"); } catch (e) { $("gFeed").select(); } };
+  $("forget").onclick = () => {
+    if (!sub) return;
+    sub = null; savedJSON = ""; remember();
+    toast("Start fresh: tap Create my calendar for a new, separate calendar"); update();
+  };
+  $("jump").onclick = () => { if (dirty()) saveSub(); else $("add").scrollIntoView({ behavior: "smooth" }); };
+  window.addEventListener("beforeunload", (e) => { if (dirty()) { e.preventDefault(); e.returnValue = ""; } });
 
   renderGroups(); renderList(); update();
+  if (API) {
+    const edit = new URLSearchParams(location.search).get("edit");
+    if (edit && /^[a-z0-9]+\.[a-z0-9]+$/.test(edit)) {
+      history.replaceState(null, "", location.pathname);
+      const [id, key] = edit.split(".");
+      loadSub(id, key, true);
+    } else if (sub) loadSub(sub.id, sub.key, false);
+  }
 })();
 </script>
 </body>

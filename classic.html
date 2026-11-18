@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coptic Feast Calendar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f2ea; --card: #fffdf9; --ink: #2a1f1a; --muted: #7a6a5f; --line: #e8dccd;
+    --accent: #7b1e2b; --accent-soft: #f3e3e3; --gold: #b8892e; --gold-soft: #f6ecd6;
+    --radius: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #17120f; --card: #211a16; --ink: #f2e9df; --muted: #a8988a; --line: #3a2f28;
+      --accent: #d8707d; --accent-soft: #3a2226; --gold: #d9b260; --gold-soft: #3a3020; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 20px 16px 120px; }
+  header { text-align: center; padding: 18px 0 8px; }
+  .cross { color: var(--gold); font-size: 26px; line-height: 1; }
+  h1 { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 700; font-size: 34px; margin: 6px 0 4px; letter-spacing: .2px; }
+  header p { color: var(--muted); margin: 0 auto; max-width: 440px; }
+  .today { display: inline-block; margin-top: 12px; padding: 5px 12px; border-radius: 999px; background: var(--gold-soft); color: var(--gold); font-weight: 600; font-size: 13px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 16px; margin-top: 16px; }
+  h2 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 23px; margin: 0 0 2px; }
+  .sub { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+  .toggle { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid var(--line); cursor: pointer; }
+  .toggle:first-of-type { border-top: 0; }
+  .toggle .t { flex: 1; } .toggle .t b { font-weight: 600; display: block; } .toggle .t span { color: var(--muted); font-size: 13px; }
+  .sw { position: relative; width: 44px; height: 26px; flex: none; }
+  .sw input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .sw i { position: absolute; inset: 0; background: var(--line); border-radius: 999px; transition: .2s; }
+  .sw i::after { content: ""; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
+  .sw input:checked + i { background: var(--accent); } .sw input:checked + i::after { transform: translateX(18px); }
+  .sw input:focus-visible + i { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 999px; padding: 7px 12px; font: inherit; font-size: 14px; cursor: pointer; }
+  .chip small { color: var(--muted); margin-left: 4px; }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip[aria-pressed="true"] small { color: rgba(255,255,255,.75); }
+  .search { width: 100%; margin: 16px 0 6px; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; }
+  .search:focus { outline: 2px solid var(--gold); border-color: transparent; }
+  .count { color: var(--muted); font-size: 13px; margin: 2px 0 6px; }
+  .list { max-height: 420px; overflow: auto; margin: 0 -6px; }
+  .row { display: flex; gap: 10px; padding: 10px 6px; border-top: 1px solid var(--line); cursor: pointer; }
+  .row input { margin-top: 3px; accent-color: var(--accent); width: 18px; height: 18px; flex: none; }
+  .row .n { font-weight: 500; } .row .m { color: var(--muted); font-size: 12.5px; }
+  .row .s { color: var(--muted); font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 2px; }
+  .badge { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 6px; background: var(--gold-soft); color: var(--gold); margin-left: 6px; vertical-align: 1px; }
+  .row.series .n::after { content: ""; }
+  .more { background: none; border: 0; color: var(--accent); font: inherit; font-size: 13px; padding: 4px 0 0; cursor: pointer; }
+  .subrows { margin-left: 28px; }
+  .subrows .row { padding: 7px 6px; }
+  .subrows .row .n { font-weight: 400; font-size: 14px; }
+  .radios { width: 100%; display: grid; gap: 8px; margin-top: 6px; }
+  .radios label { display: block; padding: 10px 12px 10px 36px; border: 1px solid var(--line); border-radius: 12px; position: relative; cursor: pointer; font-size: 14px; }
+  .radios input { position: absolute; left: 12px; top: 12px; accent-color: var(--accent); }
+  .radios span { display: block; color: var(--muted); font-size: 12.5px; }
+  .linkbtn { background: none; border: 0; color: var(--accent); font: inherit; font-size: 13px; padding: 0; cursor: pointer; text-decoration: underline; }
+  .range { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  select { padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; }
+  .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px; border-radius: 12px; border: 0; font: inherit; font-weight: 600; cursor: pointer; }
+  .btn.apple { background: var(--ink); color: var(--card); }
+  .btn.google { background: var(--accent); color: #fff; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--ink); font-weight: 500; grid-column: 1 / -1; }
+  .note { margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: var(--gold-soft); font-size: 13.5px; }
+  .note ol { margin: 6px 0 0; padding-left: 20px; }
+  .preview h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 18px 0 4px; font-weight: 600; }
+  .ev { display: flex; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .ev .d { width: 44px; flex: none; text-align: center; } .ev .d b { display: block; font-size: 18px; font-family: "Cormorant Garamond", Georgia, serif; }
+  .ev .d span { font-size: 11px; color: var(--muted); text-transform: uppercase; }
+  .ev .x { flex: 1; min-width: 0; } .ev .x div { font-weight: 500; }
+  .ev .x small { color: var(--muted); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--line); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); display: flex; justify-content: center; }
+  .bar .in { max-width: 640px; width: 100%; display: flex; align-items: center; gap: 12px; }
+  .bar .in div { flex: 1; font-size: 13.5px; color: var(--muted); } .bar .in b { color: var(--ink); }
+  .bar .btn { padding: 10px 16px; background: var(--accent); color: #fff; }
+  .toast { position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); background: var(--ink); color: var(--card); padding: 9px 14px; border-radius: 10px; font-size: 13.5px; opacity: 0; transition: .25s; pointer-events: none; }
+  .toast.on { opacity: 1; }
+  footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 22px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="cross">☩</div>
+    <h1>Coptic Feast Calendar</h1>
+    <p>Pick the saints, feasts and fasts you want, then add them all to your calendar.</p>
+    <div class="today" id="today"></div>
+  </header>
+
+  <section>
+    <h2>Church calendar</h2>
+    <p class="sub">Feasts and fasts, with movable dates worked out from Pascha.</p>
+    <div id="cats"></div>
+  </section>
+
+  <section>
+    <h2>Saints</h2>
+    <p class="sub">Tap a saint to add all their feasts and monthly commemorations, or search every day of the Synaxarium.</p>
+    <div class="chips" id="groups"></div>
+    <input class="search" id="q" type="search" placeholder="Search saints, e.g. Kyrillos, Abanoub, Martyr…" autocomplete="off">
+    <div class="count" id="count"></div>
+    <div class="list" id="list"></div>
+  </section>
+
+  <section id="add">
+    <h2>Add to calendar</h2>
+    <p class="sub" id="summary"></p>
+    <div class="range">
+      <label for="years">Include</label>
+      <select id="years">
+        <option value="1">through the end of this year</option>
+        <option value="3">through 3 years</option>
+        <option value="5" selected>through 5 years</option>
+        <option value="10">through 10 years</option>
+      </select>
+    </div>
+    <label class="toggle" style="border-top:0;padding-top:0"><span class="t"><b>Remind me the evening before</b><span>Since the Coptic day begins at sunset</span></span>
+      <span class="sw"><input type="checkbox" id="eve"><i></i></span></label>
+    <div class="range" id="eveOpts" hidden>
+      <label for="eveHour">Remind at</label>
+      <select id="eveHour"><option value="17">5:00 pm</option><option value="18">6:00 pm</option><option value="19">7:00 pm</option></select>
+      <div class="sub" style="margin:4px 0 0;width:100%"><b>Apple Calendar:</b> an alert the evening before each day.</div>
+      <div class="sub" style="margin:4px 0 0;width:100%"><b>Google Calendar</b> drops alerts from added calendar files, so pick one:</div>
+      <div class="radios" id="gmode">
+        <label><input type="radio" name="gmode" value="events"> Add a short "Eve of…" entry that evening <span>Nothing to set up</span></label>
+        <label><input type="radio" name="gmode" value="self"> I'll set Google's reminder myself <span>No extra entries, one setting to change in Google</span></label>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="btn apple" id="apple">Apple Calendar</button>
+      <button class="btn google" id="google">Google Calendar</button>
+      <button class="btn ghost" id="copy">Copy calendar file text (.ics)</button>
+    </div>
+    <div class="note" id="howto" hidden></div>
+    <div class="preview" id="preview"></div>
+  </section>
+
+  <footer>Saint summaries from the Synaxarium. Dates are computed, so please check them against your church's calendar.</footer>
+</div>
+
+<div class="bar"><div class="in"><div id="barText"></div><button class="btn" id="jump">Add</button></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// Coptic calendar core: date math, feasts, fasts, saint groups, .ics output.
+// Works in the browser (window.CopticCore) and in Node (module.exports).
+(function (root) {
+  "use strict";
+
+  const MONTHS = ["Thout", "Paopi", "Hathor", "Koiak", "Tobi", "Meshir", "Paremhat",
+    "Parmouti", "Pashons", "Paoni", "Epip", "Mesori", "Nasie"];
+
+  // ---------- Date math (all dates as UTC-midnight Date objects) ----------
+  function jdnToDate(jdn) {
+    // Julian Day Number -> Gregorian (Fliegel & Van Flandern)
+    let l = jdn + 68569;
+    const n = Math.floor((4 * l) / 146097);
+    l = l - Math.floor((146097 * n + 3) / 4);
+    const i = Math.floor((4000 * (l + 1)) / 1461001);
+    l = l - Math.floor((1461 * i) / 4) + 31;
+    const j = Math.floor((80 * l) / 2447);
+    const day = l - Math.floor((2447 * j) / 80);
+    l = Math.floor(j / 11);
+    const month = j + 2 - 12 * l;
+    const year = 100 * (n - 49) + i + l;
+    return new Date(Date.UTC(year, month - 1, day));
+  }
+  function copticToDate(cy, cm, cd) {
+    return jdnToDate(1825029 + 365 * (cy - 1) + Math.floor(cy / 4) + 30 * (cm - 1) + cd);
+  }
+  const isCopticLeap = (cy) => cy % 4 === 3;
+  function addDays(d, n) { return new Date(d.getTime() + n * 86400000); }
+  function ymd(d) { return d.toISOString().slice(0, 10); }
+
+  // Coptic (Alexandrian) Pascha for a Gregorian year: Julian computus + 13 days (valid 1900–2099)
+  function pascha(year) {
+    const a = year % 4, b = year % 7, c = year % 19;
+    const d = (19 * c + 15) % 30;
+    const e = (2 * a + 4 * b - d + 34) % 7;
+    const month = Math.floor((d + e + 114) / 31);
+    const day = ((d + e + 114) % 31) + 1;
+    return addDays(new Date(Date.UTC(year, month - 1, day)), 13);
+  }
+
+  // Every Gregorian date in [startYear, endYear] for a fixed Coptic month/day
+  function fixedOccurrences(cm, cd, startYear, endYear) {
+    const out = [];
+    for (let cy = startYear - 285; cy <= endYear - 283; cy++) {
+      if (cm === 13 && cd === 6 && !isCopticLeap(cy)) continue;
+      const g = copticToDate(cy, cm, cd);
+      const y = g.getUTCFullYear();
+      if (y >= startYear && y <= endYear) out.push({ date: g, cy });
+    }
+    return out;
+  }
+  const copticLabel = (cm, cd) => `${MONTHS[cm - 1]} ${cd}`;
+
+  // ---------- Church calendar categories ----------
+  // Fixed: [cm, cd, title, note]; movable: offset from Pascha
+  const CATEGORIES = {
+    major: {
+      label: "Major feasts of the Lord",
+      hint: "The 7 major Lordly feasts",
+      fixed: [
+        [7, 29, "Feast of the Annunciation", "Major feast of the Lord"],
+        [4, 29, "Feast of the Nativity (Christmas)", "Major feast of the Lord", "nativity"],
+        [5, 11, "Feast of Theophany (Epiphany)", "Major feast of the Lord"],
+      ],
+      movable: [
+        [-7, "Palm Sunday", "Major feast of the Lord"],
+        [0, "Feast of the Resurrection (Pascha)", "Major feast of the Lord"],
+        [39, "Feast of the Ascension", "Major feast of the Lord"],
+        [49, "Feast of Pentecost", "Major feast of the Lord"],
+      ],
+    },
+    minor: {
+      label: "Minor feasts of the Lord",
+      hint: "The 7 minor Lordly feasts",
+      fixed: [
+        [5, 6, "Feast of the Circumcision", "Minor feast of the Lord"],
+        [5, 13, "Feast of the Wedding at Cana", "Minor feast of the Lord"],
+        [6, 8, "Feast of the Entry into the Temple", "Minor feast of the Lord"],
+        [9, 24, "Feast of the Entry of the Lord into Egypt", "Minor feast of the Lord"],
+        [12, 13, "Feast of the Transfiguration", "Minor feast of the Lord"],
+      ],
+      movable: [
+        [-3, "Covenant Thursday", "Minor feast of the Lord"],
+        [7, "Thomas Sunday", "Minor feast of the Lord"],
+      ],
+    },
+    fasts: {
+      label: "Fasts: start and end",
+      hint: "Nineveh, Great Lent, Apostles, St. Mary, Nativity",
+      fixed: [
+        [12, 1, "Fast of St. Mary begins", "Through Mesori 15"],
+        [12, 15, "Fast of St. Mary ends", "Feast of the Assumption is tomorrow"],
+        [3, 16, "Nativity Fast begins", "43 days, through Koiak 28 (Jan 6)"],
+      ],
+      movable: [
+        [-69, "Fast of Nineveh begins", "Three days, Monday to Wednesday"],
+        [-67, "Fast of Nineveh ends", "Jonah's Passover is tomorrow"],
+        [-55, "Great Lent begins", "55 days including Holy Week"],
+        [-1, "Great Lent ends", "Holy Saturday (Apocalypse Night). The Feast of the Resurrection is tomorrow"],
+        [50, "Apostles' Fast begins", "Through Epip 4"],
+      ],
+      special: ["nativityFastEnd", "apostlesFastEnd"],
+    },
+    paramoun: {
+      label: "Paramoun days",
+      hint: "Strict fasting days before Nativity and Theophany",
+      fixed: [[5, 10, "Paramoun of Theophany", "Strict fast before the Feast of Theophany"]],
+      special: ["nativityParamoun"],
+    },
+    other: {
+      label: "Other Church days",
+      hint: "Nayrouz, Cross feasts, Holy Week, Jonah's Passover, Assumption, Apostles",
+      fixed: [
+        [1, 1, "Feast of El-Nayrouz (Coptic New Year)", ""],
+        [1, 17, "Feast of the Cross", "Thout 17–19"],
+        [7, 10, "Feast of the Cross (Paremhat 10)", ""],
+        [12, 16, "Feast of the Assumption of St. Mary", ""],
+        [11, 5, "Feast of the Apostles (Sts. Peter and Paul)", "End of the Apostles' Fast"],
+      ],
+      movable: [
+        [-66, "Jonah's Passover", ""],
+        [-8, "Lazarus Saturday", ""],
+        [-2, "Good Friday", ""],
+      ],
+    },
+    joyous29: {
+      label: "Joyous 29th of each Coptic month",
+      hint: "Monthly commemoration of the Annunciation, Nativity and Resurrection (not in Tobi or Meshir)",
+    },
+  };
+
+  function churchEvents(cat, startYear, endYear) {
+    const def = CATEGORIES[cat];
+    const ev = [];
+    const push = (date, title, note, cm, cd) => {
+      const y = date.getUTCFullYear();
+      if (y < startYear || y > endYear) return;
+      ev.push({ date, title, desc: note, coptic: cm ? copticLabel(cm, cd) : "", cat });
+    };
+    if (cat === "joyous29") {
+      for (let cm = 1; cm <= 12; cm++) {
+        if (cm === 5 || cm === 6) continue; // not observed in Tobi and Meshir
+        for (const o of fixedOccurrences(cm, 29, startYear, endYear))
+          push(o.date, JOYOUS, "Monthly commemoration of the Annunciation, the Nativity and the Resurrection", cm, 29);
+      }
+      return ev;
+    }
+    for (const [cm, cd, title, note, flag] of def.fixed || []) {
+      for (const o of fixedOccurrences(cm, cd, startYear, endYear)) {
+        let date = o.date;
+        // The Church keeps the Nativity on Jan 7 even when Koiak 29 falls on Jan 8
+        if (flag === "nativity") date = new Date(Date.UTC(o.date.getUTCFullYear(), 0, 7));
+        push(date, title, note, cm, cd);
+      }
+    }
+    for (let y = startYear; y <= endYear; y++) {
+      const p = pascha(y);
+      for (const [off, title, note] of def.movable || []) push(addDays(p, off), title, note);
+      for (const s of def.special || []) {
+        if (s === "nativityFastEnd") push(new Date(Date.UTC(y, 0, 6)), "Nativity Fast ends", "Paramoun of the Nativity. Feast of the Nativity is tomorrow");
+        if (s === "nativityParamoun") push(new Date(Date.UTC(y, 0, 6)), "Paramoun of the Nativity", "Strict fast before the Feast of the Nativity");
+        if (s === "apostlesFastEnd") {
+          const end = fixedOccurrences(11, 4, y, y)[0];
+          if (end) push(end.date, "Apostles' Fast ends", "The Feast of the Apostles is tomorrow", 11, 4);
+        }
+      }
+    }
+    return ev;
+  }
+
+  // ---------- Saints ----------
+  // Consistent display titles ("Saint – occasion") for saints with several commemorations.
+  // Keyed by "month-day|title in the source file", so edits elsewhere in the file don't break it.
+  const M = (n) => "Archangel Michael – " + n, MARY = (n) => "St. Mary – " + n;
+  const TITLES = {
+    "1-12|Archangel Michael (Monthly Commemoration)": M("Monthly Commemoration"),
+    "2-12|Archangel Michael (Monthly Commemoration)": M("Monthly Commemoration"),
+    "3-12|The Honorable Archangel Michael": M("Annual Feast"),
+    "4-12|Archangel Michael": M("Monthly Commemoration"),
+    "5-12|The Commemoration of the Honorable Archangel Michael": M("Monthly Commemoration"),
+    "6-12|The Commemoration of the Honorable Archangel Michael": M("Monthly Commemoration"),
+    "7-12|The Monthly Commemoration of the Honorable Archangel Michael": M("Monthly Commemoration"),
+    "8-12|The Monthly Commemoration of the Honorable Archangel Michael": M("Monthly Commemoration"),
+    "9-12|The Monthly Commemoration of the Honorable Archangel Michael": M("Monthly Commemoration"),
+    "10-12|The Commemoration of the Archangel Michael": M("Consecration of His Church in Alexandria"),
+    "11-12|The Commemoration of the Archangel Michael": M("Monthly Commemoration"),
+    "12-12|Archangel Michael": M("Monthly Commemoration"),
+
+    "1-21|The Commemoration of the Virgin St. Mary, the Theotokos": MARY("Monthly Commemoration"),
+    "2-21|The Commemoration of the Holy Theotokos, the Virgin St. Mary": MARY("Monthly Commemoration"),
+    "3-21|The Commemoration of the Departure of the Virgin, the Holy Theotokos": MARY("Monthly Commemoration"),
+    "4-21|The Commemoration of the Virgin St. Mary, the Mother of God": MARY("Monthly Commemoration"),
+    "5-21|The Departure of the Virgin St. Mary, the Mother of God": MARY("Departure"),
+    "6-21|The Monthly Commemoration of the Holy Virgin St. Mary": MARY("Monthly Commemoration"),
+    "7-21|The Monthly Commemoration of the Theotokos, the Pure Virgin St. Mary": MARY("Monthly Commemoration"),
+    "8-21|The Monthly Commemoration of the Virgin Mary, the Mother of God": MARY("Monthly Commemoration"),
+    "9-21|The Monthly Commemoration of the Holy Pure Virgin St. Mary": MARY("Monthly Commemoration"),
+    "11-21|The Commemoration of the Lady Virgin St. Mary": MARY("Monthly Commemoration"),
+    "12-21|The Commemoration of the Virgin St. Mary, the Mother of God": MARY("Monthly Commemoration"),
+    "9-1|The Nativity of the Blessed Virgin Mary, the Mother of God": MARY("Nativity"),
+    "12-16|The Assumption of the Body of the Virgin St. Mary to Heaven": MARY("Assumption of Her Body"),
+    "7-16|The Apparition of the Virgin St. Mary in the Church of St. Demiana in Papadouplo, Shoubra, Cairo": MARY("Apparition at St. Demiana Church, Shoubra"),
+    "7-24|The Apparition of the Pure Virgin St. Mary on Her Church in Zeitoun": MARY("Apparition in Zeitoun"),
+    "10-21|The First Church Built for the Virgin Mary in Philippi": MARY("First Church Built in Her Name, Philippi"),
+    "10-21|The Miracle of the Melting of the Iron in Bartus, by the Prayers of the Virgin Mary": MARY("Miracle of the Melting Iron in Bartus"),
+
+    "8-23|St. George, the Prince of the Martyrs": "St. George – Martyrdom",
+    "3-7|The Consecration of the Church of St. George of Cappadocia, in the city of Lydda": "St. George – Consecration of His Church in Lydda",
+    "11-16|The Relocation of the Relics of St. George, the Great Martyr, to His Church in Old Cairo": "St. George – Relocation of His Relics to Old Cairo",
+
+    "8-30|St. Mark, the Evangelist": "St. Mark the Apostle – Martyrdom",
+    "2-30|The Appearance of the Holy Head of St. Mark the Evangelist and the Consecration of his Church": "St. Mark the Apostle – Appearance of His Head and Consecration of His Church",
+    "5-8|The Return of the Head of St. Mark the Apostle": "St. Mark the Apostle – Return of His Head",
+    "10-15|The Receiving of the Relics of St. Mark the Apostle, the Evangelist": "St. Mark the Apostle – Receiving of His Relics",
+    "10-17|The Return of the Relics of St. Mark the Apostle to the New St. Mark Cathedral, Abbassia, Cairo": "St. Mark the Apostle – Return of His Relics to St. Mark Cathedral, Abbassia",
+
+    "3-15|St. Mari-Mina, the Wonder-Worker": "St. Mina – Martyrdom",
+    "10-15|The Consecration of the Church of St. Mari Mina in Mariut": "St. Mina – Consecration of His Church in Mariut",
+    "11-1|The Consecration of the Church of the Great Mari Mina at Mount Abnoub": "St. Mina – Consecration of His Church at Mount Abnoub",
+
+    "3-25|St. Mercurius, known as Abu Saifain": "St. Abu Sefein – Martyrdom",
+    "10-9|The Relocation of the Relics of St. Mercurius Abu Safain to Cairo": "St. Abu Sefein – Relocation of His Relics to Cairo",
+    "11-25|The Consecration of the Church of St. Mercurius Abu-Seifein": "St. Abu Sefein – Consecration of His Church",
+
+    "5-13|St. Demiana": "St. Demiana – Martyrdom",
+    "9-12|The Consecration of the Church of St. Demiana": "St. Demiana – Consecration of Her Church",
+
+    "5-22|St. Anthony the Great": "St. Antony the Great – Departure",
+    "12-4|St. Anthony the Great (Antonius)": "St. Antony the Great – Consecration of His Church",
+
+    "3-13|The Honorable Archangel Gabriel": "Archangel Gabriel – Commemoration",
+    "4-22|The Honorable Archangel Gabriel": "Archangel Gabriel – Monthly Commemoration",
+    "7-30|The Commemoration of the Archangel Gabriel, the Announcer": "Archangel Gabriel – Commemoration",
+    "10-13|The Commemoration of the Archangel Gabriel the Announcer": "Archangel Gabriel – Commemoration",
+
+    "4-13|The Commemoration of the Honorable Archangel Raphael": "Archangel Raphael – Commemoration",
+    "13-3|The Archangel Raphael": "Archangel Raphael – Consecration of His Church",
+
+    "1-2|St. John the Baptist (Martyrdom)": "St. John the Baptist – Martyrdom",
+    "6-30|The Appearance of the Head of St. John the Baptist": "St. John the Baptist – Appearance of His Head",
+    "10-2|The Appearance of the Bodies of St. John the Baptist and Elisha the Prophet in Alexandria": "St. John the Baptist – Appearance of His Relics (with Elisha the Prophet)",
+    "10-30|The Nativity of St. John the Baptist": "St. John the Baptist – Nativity",
+
+    "11-8|St. Pishoy (Bishoy), the Beloved of Christ": "St. Pishoy – Departure",
+    "4-4|The Translocation of the Bodies of the Two Saints Anba Bishoy and Anba Paula": "St. Pishoy – Translocation of His Body (with St. Paul of Tammoh)",
+
+    "9-7|St. Athanasius, the Apostolic, 20th Pope of Alexandria": "St. Athanasius the Apostolic – Departure",
+    "1-30|The Commemoration of the Miracle that God Performed for St. Athanasius the Apostolic": "St. Athanasius the Apostolic – Commemoration of a Miracle",
+
+    "11-7|St. Shenouda, the Archimandrite": "St. Shenouda the Archimandrite – Departure",
+    "4-1|The Consecration of the Church of Saint Abba Shenouda, the Archimandrite": "St. Shenouda the Archimandrite – Consecration of His Church",
+
+    "7-27|St. Macarius the Great": "St. Macarius the Great – Departure",
+    "5-8|The Consecration of the Church of St. Macarius the Great": "St. Macarius the Great – Consecration of His Church",
+    "7-13|The Return of Sts. Macarius the Great and Macarius of Alexandria, from Exile": "St. Macarius the Great – Return from Exile (with St. Macarius of Alexandria)",
+    "12-19|The Return of the Body of St. Macarius the Great to His Monastery in Scetis": "St. Macarius the Great – Return of His Body to Scetis",
+
+    "11-23|St. Marina of Antioch": "St. Marina – Martyrdom",
+    "3-23|The Consecration of the Church of the Martyr, St. Marina": "St. Marina – Consecration of Her Church",
+
+    "5-1|St. Stephen, the Archdeacon": "St. Stephen the Archdeacon – Martyrdom",
+    "1-15|St. Stephen the Archdeacon (Translocation of the Body)": "St. Stephen the Archdeacon – Translocation of His Body",
+
+    "10-3|St. Abraam, Bishop of El Fayyom": "St. Abraam of Fayoum – Departure",
+    "5-9|St. Abraam, Bishop of El-Fayoum": "St. Abraam of Fayoum – Commemoration",
+  };
+
+  const JOYOUS = "Joyous 29th – Monthly Commemoration";
+
+  // Monthly repeaters (same title on many days) are shown as one row in the picker
+  function buildSeries(saints) {
+    const by = new Map();
+    for (const s of saints) if (/Monthly Commemoration$/.test(s.name)) {
+      if (!by.has(s.name)) by.set(s.name, []);
+      by.get(s.name).push(s);
+    }
+    const series = new Map();
+    for (const [name, list] of by) if (list.length > 1) series.set(name, { name, day: list[0].cd, members: list });
+    return series;
+  }
+
+  function flattenSaints(data) {
+    const list = [];
+    for (const key of Object.keys(data)) {
+      if (key.startsWith("_")) continue;
+      const [cm, cd] = key.split("-").map(Number);
+      data[key].forEach((e, i) => list.push({
+        id: `${key}#${i}`, cm, cd, name: TITLES[`${key}|${e.name}`] ||
+          (cd === 29 && /Three Major Feasts/.test(e.name) ? JOYOUS : e.name), source: e.name, summary: e.summary || "", hasHymn: !!e.hasHymn,
+      }));
+    }
+    list.sort((a, b) => a.cm - b.cm || a.cd - b.cd);
+    return list;
+  }
+
+  // Popular saints: one tap selects every commemoration of that saint
+  const GROUPS = [
+    ["Archangel Michael", /Archangel Michael/],
+    ["St. Mary, the Theotokos", /Virgin St\.? Mary|Theotokos|Virgin Mary|Lady Virgin/, /Joachim/],
+    ["St. George", /St\. George, the Prince|St\. George of Cappadocia|St\. George, the Great Martyr/],
+    ["St. Mark the Apostle", /(St\.|Head of St\.) Mark,? the (Apostle|Evangelist)/],
+    ["St. Mina (Mari Mina)", /Mari.?Mina/],
+    ["St. Abu Sefein (Mercurius)", /Abu.?S[ae]i?f/],
+    ["St. Demiana", /^St\. Demiana$|Church of St\. Demiana$/],
+    ["St. Antony the Great", /Anthony the Great/],
+    ["Archangel Gabriel", /Archangel Gabriel/],
+    ["Archangel Raphael", /Archangel Raphael/],
+    ["St. John the Baptist", /John the Baptist/, /Elizabeth/],
+    ["Sts. Peter and Paul", /Peter and Paul, the Apostles/],
+    ["St. Paul the First Hermit", /Paul, the First Hermit/],
+    ["St. Pishoy", /Pishoy \(Bishoy\)|Anba Bishoy/],
+    ["St. Moses the Black", /Moses the Ethiopian/],
+    ["St. Athanasius the Apostolic", /Athanasius,? the Apostolic/],
+    ["St. Cyril of Alexandria", /Cyril of Alexandria/],
+    ["St. Shenouda the Archimandrite", /Shenouda,? the Archimandrite|Abba Shenouda, the/, /Disciple/],
+    ["St. Macarius the Great", /Macarius the Great/],
+    ["St. Marina", /Marina of Antioch|Martyr, St\. Marina/],
+    ["St. Stephen the Archdeacon", /Stephen,? the Archdeacon/],
+    ["St. Abraam of Fayoum", /St\. Abraam, Bishop/],
+    ["St. Takla Haymanot", /Takla Haymanot/],
+    ["St. Verena", /St\. Verena/],
+    ["St. Abanoub (Apa-Noub)", /Apa-Noub of Nahisah/],
+    ["Pope Kyrillos VI", /K[iy]r[iyo]ll?os VI\b|Cyril VI\b/],
+    ["Pope Shenouda III", /Shenouda III/],
+    ["Fr. Pishoy Kamel", /Pishoy Kamel/],
+    ["Archdeacon Habib Girgis", /Habib Girgis/],
+    ["St. Sidhom Bishay", /Sidhom Bishay/],
+    ["Martyrs of Libya", /Martyrs of Libya/],
+  ];
+  function buildGroups(saints) {
+    return GROUPS.map(([name, re, excl]) => ({
+      name,
+      ids: saints.filter((s) => re.test(s.source) && !(excl && excl.test(s.source))).map((s) => s.id),
+    })).filter((g) => g.ids.length);
+  }
+
+  // Spelling-insensitive search: "Kyrillos" finds "Kyrollos", "Abanoub" finds "Apa-Noub", etc.
+  const ALIASES = [
+    [/k[iy]r[iyo]ll?os|cyril/g, "kyrillos"], [/a[bp]a?n[ou]u?b/g, "abanoub"], [/[pb]ish[ao]?[yi]/g, "pishoy"],
+    [/anth?ony|antonius/g, "antony"], [/m[ie]na\b/g, "mina"], [/g[iu]*rg[iu]s|guirguis|ga'orgi/g, "george"],
+    [/d[ie]m[iy]ana/g, "demiana"], [/abu.?s[ae]i?fe?[iy]?n|mercurius/g, "abusefein"], [/te?k[lh]a|tekle/g, "takla"],
+    [/marcus/g, "mark"], [/boctor/g, "victor"], [/moisis|moisees/g, "moses"], [/abra(a|ha)m/g, "abraam"],
+  ];
+  function normalize(text) {
+    let t = String(text).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+    t = t.replace(/[^a-z0-9' ]+/g, " ").replace(/\s+/g, " ");
+    t = t.replace(/\b(apa|aba|abba|anba) (n[ou]u?b)/g, "$1$2"); // "Apa Noub" -> "Apanoub"
+    for (const [re, to] of ALIASES) t = t.replace(re, to);
+    return t;
+  }
+  function matches(saint, query) {
+    if (!saint._norm) saint._norm = normalize(saint.name + " " + saint.source + " " + copticLabel(saint.cm, saint.cd));
+    return normalize(query).split(" ").filter(Boolean).every((w) => saint._norm.includes(w));
+  }
+
+  function saintEvents(saints, ids, startYear, endYear) {
+    const set = new Set(ids);
+    const ev = [];
+    for (const s of saints) {
+      if (!set.has(s.id)) continue;
+      for (const o of fixedOccurrences(s.cm, s.cd, startYear, endYear))
+        ev.push({ date: o.date, title: s.name, desc: (s.source !== s.name ? "Coptic Reader: " + s.source + "\n\n" : "") + s.summary, coptic: copticLabel(s.cm, s.cd), cat: "saint", sid: s.id });
+    }
+    return ev;
+  }
+
+  function buildEvents({ saints, saintIds, categories, startYear, endYear }) {
+    let ev = saintEvents(saints, saintIds, startYear, endYear);
+    for (const c of categories) {
+      let add = churchEvents(c, startYear, endYear);
+      // Koiak 29 and Paremhat 29 are the feasts themselves; don't double up when major feasts are on
+      if (c === "joyous29" && categories.includes("major"))
+        add = add.filter((e) => e.coptic !== "Koiak 29" && e.coptic !== "Paremhat 29");
+      ev = ev.concat(add);
+    }
+    // Drop exact duplicates (same day + same title)
+    const seen = new Set();
+    ev = ev.filter((e) => { const k = ymd(e.date) + "|" + e.title; if (seen.has(k)) return false; seen.add(k); return true; });
+    ev.sort((a, b) => a.date - b.date || a.title.localeCompare(b.title));
+    return ev;
+  }
+
+  // ---------- iCalendar ----------
+  function icsEscape(s) {
+    return String(s).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+  }
+  function fold(line) {
+    // Fold at 75 octets without splitting UTF-8 characters
+    const enc = new TextEncoder();
+    if (enc.encode(line).length <= 75) return line;
+    const parts = []; let cur = ""; let len = 0; let limit = 75;
+    for (const ch of line) {
+      const n = enc.encode(ch).length;
+      if (len + n > limit) { parts.push(cur); cur = ""; len = 0; limit = 74; }
+      cur += ch; len += n;
+    }
+    parts.push(cur);
+    return parts.join("\r\n ");
+  }
+  function hash(str) {
+    let h = 5381; for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  }
+  const isFast = (e) => e.cat === "fasts" || e.cat === "paramoun";
+  // opts.eve: { hour: 18, mode: "alarm" | "events" }
+  //   alarm  – Apple: an alert on each all-day event at <hour> the evening before
+  //   events – Google (which drops alerts from imported files): one short timed "Eve of…" entry per evening
+  function toICS(events, calName, opts) {
+    const eve = opts && opts.eve;
+    const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+    const d8 = (d) => ymd(d).replace(/-/g, "");
+    const hh = (h) => String(h).padStart(2, "0");
+    const lines = [
+      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Coptic Feast Calendar//EN", "CALSCALE:GREGORIAN",
+      "METHOD:PUBLISH", "X-WR-CALNAME:" + icsEscape(calName || "Coptic Calendar"),
+    ];
+    for (const e of events) {
+      const desc = [e.coptic ? "Coptic date: " + e.coptic : "", e.desc].filter(Boolean).join("\n\n");
+      lines.push(
+        "BEGIN:VEVENT",
+        "UID:" + d8(e.date) + "-" + hash(e.title) + "@coptic-feast-calendar",
+        "DTSTAMP:" + stamp,
+        "DTSTART;VALUE=DATE:" + d8(e.date),
+        "DTEND;VALUE=DATE:" + d8(addDays(e.date, 1)),
+        "SUMMARY:" + icsEscape(e.title),
+        desc ? "DESCRIPTION:" + icsEscape(desc) : null,
+        "TRANSP:TRANSPARENT"
+      );
+      if (eve && eve.mode === "alarm") lines.push(
+        "BEGIN:VALARM", "ACTION:DISPLAY",
+        "DESCRIPTION:" + icsEscape((isFast(e) ? "Tomorrow: " : "Tonight begins: ") + e.title),
+        "TRIGGER;RELATED=START:-PT" + (24 - eve.hour) + "H",
+        "END:VALARM"
+      );
+      lines.push("END:VEVENT");
+    }
+    if (eve && eve.mode === "events") {
+      // One entry per evening, listing everything that begins that night
+      const byDay = new Map();
+      for (const e of events) {
+        const k = ymd(e.date);
+        if (!byDay.has(k)) byDay.set(k, { date: e.date, titles: [], feasts: [], fasts: [] });
+        const d = byDay.get(k);
+        d.titles.push(e.title);
+        (isFast(e) ? d.fasts : d.feasts).push(e.title.replace(/ – Monthly Commemoration$/, ""));
+      }
+      for (const { date, titles, feasts, fasts } of byDay.values()) {
+        const ev = addDays(date, -1);
+        const summary = [feasts.length ? "Eve of " + feasts.join(" · ") : "", fasts.length ? "Tomorrow: " + fasts.join(" · ") : ""]
+          .filter(Boolean).join(" · ");
+        lines.push(
+          "BEGIN:VEVENT",
+          "UID:eve-" + d8(date) + "-" + hash(titles.join("|")) + "@coptic-feast-calendar",
+          "DTSTAMP:" + stamp,
+          "DTSTART:" + d8(ev) + "T" + hh(eve.hour) + "0000",
+          "DTEND:" + d8(ev) + "T" + hh(eve.hour) + "3000",
+          "SUMMARY:" + icsEscape(summary),
+          "DESCRIPTION:" + icsEscape("Tomorrow:\n• " + titles.join("\n• ") + (feasts.length ? "\n\nThe Coptic day begins at Vespers tonight." : "")),
+          "TRANSP:TRANSPARENT",
+          "END:VEVENT"
+        );
+      }
+    }
+    lines.push("END:VCALENDAR");
+    return lines.filter((l) => l !== null).map(fold).join("\r\n") + "\r\n";
+  }
+
+  const api = { MONTHS, CATEGORIES, copticToDate, pascha, fixedOccurrences, flattenSaints, buildGroups, buildSeries, matches, buildEvents, toICS, ymd, copticLabel };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.CopticCore = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(async function () {
+  const C = window.CopticCore;
+  const $ = (id) => document.getElementById(id);
+  const inArtifact = typeof window.claude !== "undefined";
+  const COLORS = { saint: "var(--accent)", major: "var(--gold)", minor: "#c79a4a", fasts: "#5b7a99", paramoun: "#5b7a99", other: "#8a7a6c", joyous29: "#c98b2b" };
+
+  // State (remembered in this browser only)
+  let state = { cats: ["major", "fasts"], groups: [], ids: [], years: 5, eve: false, eveHour: 18, gmode: "events" };
+  try { Object.assign(state, JSON.parse(localStorage.getItem("cfc-state") || "{}")); } catch (e) {}
+  const save = () => { try { localStorage.setItem("cfc-state", JSON.stringify(state)); } catch (e) {} };
+
+  const data = await fetch("saints.json").then((r) => r.json());
+  const saints = C.flattenSaints(data);
+  const byId = new Map(saints.map((s) => [s.id, s]));
+  const groups = C.buildGroups(saints);
+
+  const now = new Date(); const todayUTC = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  // Today's Coptic date
+  (function () {
+    for (let cm = 1; cm <= 13; cm++) for (let cd = 1; cd <= 30; cd++) {
+      if (cm === 13 && cd > 6) break;
+      const o = C.fixedOccurrences(cm, cd, now.getFullYear(), now.getFullYear()).find((o) => C.ymd(o.date) === C.ymd(todayUTC));
+      if (o) { $("today").textContent = "Today is " + C.copticLabel(cm, cd) + ", " + o.cy + " A.M."; return; }
+    }
+  })();
+  function nextDate(s) {
+    const occ = C.fixedOccurrences(s.cm, s.cd, now.getFullYear(), now.getFullYear() + 1).find((o) => o.date >= todayUTC);
+    if (!occ) return "";
+    const opts = { month: "short", day: "numeric", timeZone: "UTC" };
+    if (occ.date.getUTCFullYear() !== now.getFullYear()) opts.year = "numeric";
+    return occ.date.toLocaleDateString(undefined, opts);
+  }
+
+  // Church categories
+  $("cats").innerHTML = Object.entries(C.CATEGORIES).map(([k, c]) => `
+    <label class="toggle"><span class="t"><b>${c.label}</b><span>${c.hint}</span></span>
+    <span class="sw"><input type="checkbox" data-cat="${k}" ${state.cats.includes(k) ? "checked" : ""}><i></i></span></label>`).join("");
+  $("cats").addEventListener("change", (e) => {
+    const k = e.target.dataset.cat; if (!k) return;
+    state.cats = e.target.checked ? [...new Set([...state.cats, k])] : state.cats.filter((x) => x !== k);
+    update();
+  });
+
+  // Popular saint groups
+  function renderGroups() {
+    $("groups").innerHTML = groups.map((g, i) =>
+      `<button class="chip" data-g="${i}" aria-pressed="${state.groups.includes(g.name)}">${g.name}<small>${g.ids.length}</small></button>`).join("");
+  }
+  $("groups").addEventListener("click", (e) => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    const g = groups[+b.dataset.g];
+    state.groups = state.groups.includes(g.name) ? state.groups.filter((x) => x !== g.name) : [...state.groups, g.name];
+    renderGroups(); renderList(); update();
+  });
+
+  // Full saint list
+  const selectedIds = () => {
+    const s = new Set(state.ids);
+    for (const g of groups) if (state.groups.includes(g.name)) g.ids.forEach((id) => s.add(id));
+    return s;
+  };
+  const series = C.buildSeries(saints);
+  const seriesOf = new Map();
+  for (const sr of series.values()) sr.members.forEach((m) => seriesOf.set(m.id, sr));
+  const open = new Set();
+  const ord = (n) => n + (n % 10 === 1 && n !== 11 ? "st" : n % 10 === 2 && n !== 12 ? "nd" : n % 10 === 3 && n !== 13 ? "rd" : "th");
+
+  function saintRow(s, sel, sub) {
+    return `<label class="row"><input type="checkbox" data-id="${s.id}" ${sel.has(s.id) ? "checked" : ""}>
+      <span><div class="n">${sub ? C.copticLabel(s.cm, s.cd) : s.name}${s.hasHymn && !sub ? '<span class="badge">hymns</span>' : ""}</div>
+      <div class="m">${sub ? "next " + nextDate(s) : C.copticLabel(s.cm, s.cd) + " · next " + nextDate(s)}${!sub && s.source !== s.name ? ` · <i>${s.source}</i>` : ""}</div>
+      ${sub ? "" : `<div class="s">${s.summary}</div>`}</span></label>`;
+  }
+  function seriesRow(sr, sel) {
+    const n = sr.members.filter((m) => sel.has(m.id)).length;
+    const next = sr.members.map((m) => C.fixedOccurrences(m.cm, m.cd, now.getFullYear(), now.getFullYear() + 1).find((o) => o.date >= todayUTC))
+      .filter(Boolean).sort((a, b) => a.date - b.date)[0];
+    const nextTxt = next ? next.date.toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" }) : "";
+    const isOpen = open.has(sr.name);
+    return `<div class="seriesbox"><label class="row series"><input type="checkbox" data-series="${sr.name}" ${n === sr.members.length ? "checked" : ""} ${n && n < sr.members.length ? "data-partial" : ""}>
+      <span><div class="n">${sr.name}</div>
+      <div class="m">The ${ord(sr.day)} of ${sr.members.length} Coptic months${n && n < sr.members.length ? ` · ${n} of ${sr.members.length} picked` : ""} · next ${nextTxt}</div>
+      <button class="more" data-toggle="${sr.name}">${isOpen ? "Hide months ▴" : "Pick months ▾"}</button></span></label>
+      ${isOpen ? `<div class="subrows">${sr.members.map((m) => saintRow(m, sel, true)).join("")}</div>` : ""}</div>`;
+  }
+  function renderList() {
+    const q = $("q").value.trim();
+    const sel = selectedIds();
+    let rows;
+    if (!q) rows = saints.filter((s) => sel.has(s.id));
+    else rows = saints.filter((s) => C.matches(s, q) || (seriesOf.has(s.id) && C.matches({ name: seriesOf.get(s.id).name, source: "", cm: s.cm, cd: s.cd }, q)));
+    // Collapse monthly repeaters into one item, placed where their first member appears
+    const items = []; const seen = new Set();
+    for (const s of rows) {
+      const sr = seriesOf.get(s.id);
+      if (sr) { if (!seen.has(sr.name)) { seen.add(sr.name); items.push({ sr }); } }
+      else items.push({ s });
+    }
+    if (!q) $("count").innerHTML = items.length ? `${items.length} selected` : "Search to pick individual saints. Your selections show here.";
+    else $("count").textContent = `${items.length} match${items.length === 1 ? "" : "es"}`;
+    $("list").innerHTML = items.slice(0, 200).map((it) => it.sr ? seriesRow(it.sr, sel) : saintRow(it.s, sel, false)).join("") +
+      (items.length > 200 ? `<div class="count" style="padding:8px 6px">Showing 200 of ${items.length}. Keep typing to narrow it down.</div>` : "");
+    $("list").querySelectorAll("[data-partial]").forEach((el) => (el.indeterminate = true));
+  }
+  $("list").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-toggle]"); if (!b) return;
+    e.preventDefault();
+    const k = b.dataset.toggle; open.has(k) ? open.delete(k) : open.add(k); renderList();
+  });
+  function setIds(ids, on) {
+    if (on) { state.ids = [...new Set([...state.ids, ...ids])]; return; }
+    state.ids = state.ids.filter((x) => !ids.includes(x));
+    // Unticking days that came from a shortcut turns the shortcut off and keeps its other days
+    for (const g of groups) if (state.groups.includes(g.name) && g.ids.some((x) => ids.includes(x))) {
+      state.groups = state.groups.filter((x) => x !== g.name);
+      state.ids = [...new Set([...state.ids, ...g.ids.filter((x) => !ids.includes(x))])];
+    }
+    renderGroups();
+  }
+  $("q").addEventListener("input", renderList);
+  $("list").addEventListener("change", (e) => {
+    const t = e.target;
+    if (t.dataset.series) setIds(series.get(t.dataset.series).members.map((m) => m.id), t.checked);
+    else if (t.dataset.id) setIds([t.dataset.id], t.checked);
+    else return;
+    renderList(); update();
+  });
+
+  // Events + preview
+  function events() {
+    const y = now.getFullYear();
+    return C.buildEvents({ saints, saintIds: [...selectedIds()], categories: state.cats, startYear: y, endYear: y + state.years - 1 })
+      .filter((e) => e.date >= todayUTC);
+  }
+  function update() {
+    save();
+    const ev = events();
+    const nSaints = selectedIds().size;
+    const yrs = `today through ${now.getFullYear() + state.years - 1}`;
+    $("summary").textContent = `${ev.length} events over ${yrs} · ${nSaints} saint commemorations · ${state.cats.length} Church calendar options`;
+    $("barText").innerHTML = `<b>${ev.length}</b> events ready`;
+    $("apple").disabled = $("google").disabled = $("copy").disabled = !ev.length;
+
+    const upcoming = ev.slice(0, 25);
+    let html = "";
+    let lastMonth = "";
+    for (const e of upcoming) {
+      const m = e.date.toLocaleDateString(undefined, { month: "long", year: "numeric", timeZone: "UTC" });
+      if (m !== lastMonth) { html += `<h3>${m}</h3>`; lastMonth = m; }
+      html += `<div class="ev"><div class="d"><b>${e.date.getUTCDate()}</b><span>${e.date.toLocaleDateString(undefined, { weekday: "short", timeZone: "UTC" })}</span></div>
+        <div class="x"><div><span class="dot" style="background:${COLORS[e.cat]}"></span>${e.title}</div><small>${[e.coptic, e.cat === "saint" ? "" : e.desc].filter(Boolean).join(" · ")}</small></div></div>`;
+    }
+    $("preview").innerHTML = html;
+  }
+  [...$("years").options].forEach((o) => { o.textContent = "From today through " + (now.getFullYear() + +o.value - 1); });
+  $("years").value = String(state.years);
+  $("years").addEventListener("change", (e) => { state.years = +e.target.value; update(); });
+
+  // Export
+  const toast = (msg) => { const t = $("toast"); t.textContent = msg; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 2200); };
+  const icsText = (kind) => C.toICS(events(), "Coptic Calendar",
+    !state.eve ? null : kind !== "google" ? { eve: { hour: state.eveHour, mode: "alarm" } }
+      : state.gmode === "events" ? { eve: { hour: state.eveHour, mode: "events" } } : null);
+  function download(kind) {
+    const blob = new Blob([icsText(kind)], { type: "text/calendar;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "coptic-calendar.ics";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }
+  $("eve").checked = state.eve; $("eveHour").value = String(state.eveHour); $("eveOpts").hidden = !state.eve;
+  $("eve").addEventListener("change", (e) => { state.eve = e.target.checked; $("eveOpts").hidden = !state.eve; save(); });
+  $("eveHour").addEventListener("change", (e) => { state.eveHour = +e.target.value; save(); });
+  document.querySelectorAll('[name=gmode]').forEach((r) => {
+    r.checked = r.value === state.gmode;
+    r.addEventListener("change", () => { state.gmode = r.value; save(); });
+  });
+  function googleReminderSteps() {
+    if (!state.eve || state.gmode !== "self") return "";
+    const t = { 17: "5:00 PM", 18: "6:00 PM", 19: "7:00 PM" }[state.eveHour];
+    return `<li>For your evening reminder: in Google Calendar's <b>Settings</b>, click the calendar you imported into under <b>Settings for my calendars</b>. Under <b>All-day event notifications</b>, add <b>1 day before at ${t}</b>. This applies to every all-day event in that calendar, so import into a separate "Coptic" calendar (step 2) rather than your main one.</li>`;
+  }
+  function showHow(kind) {
+    const box = $("howto"); box.hidden = false;
+    const blocked = inArtifact ? `<p><b>Preview mode:</b> calendar files can't be downloaded from this preview. Once this page is hosted (for example on GitHub Pages), these buttons download the file directly.</p>` : "";
+    box.innerHTML = blocked + (kind === "apple"
+      ? `<b>Apple Calendar</b><ol><li>Open the downloaded <i>coptic-calendar.ics</i> (on iPhone, tap it in Safari's downloads).</li><li>Tap <b>Add All</b>, and choose a calendar. A new "Coptic" calendar makes these easy to hide or remove later.</li></ol>`
+      : `<b>Google Calendar</b><ol><li>On a computer, open calendar.google.com.</li><li>Optional: create a new calendar named "Coptic" so these are easy to hide or remove.</li><li>Go to <b>Settings → Import &amp; export → Import</b>, choose <i>coptic-calendar.ics</i>, pick the calendar, and press Import.</li>${googleReminderSteps()}</ol><p style="margin:8px 0 0">Google's phone app can't import files, so use a computer.</p>`);
+  }
+  $("apple").onclick = () => { if (!inArtifact) download("apple"); showHow("apple"); };
+  $("google").onclick = () => { if (!inArtifact) download("google"); showHow("google"); };
+  $("copy").onclick = async () => {
+    try { await navigator.clipboard.writeText(icsText("apple")); toast("Calendar file text copied"); }
+    catch (e) { toast("Couldn't copy here"); }
+  };
+  $("jump").onclick = () => $("add").scrollIntoView({ behavior: "smooth" });
+
+  renderGroups(); renderList(); update();
+})();
+</script>
+</body>
+</html>
