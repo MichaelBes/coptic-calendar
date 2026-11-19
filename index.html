@@ -10,6 +10,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
+<link rel="preload" href="saints.json" as="fetch" crossorigin="anonymous">
 <meta name="theme-color" content="#7b1e2b">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Coptic Feast Calendar">
@@ -108,6 +109,25 @@
   .faq .q summary { color: var(--ink); font-size: 15px; font-weight: 500; }
   .faq .q p { margin: 8px 0 2px; font-size: 14px; color: var(--muted); }
   .faq .q p b { color: var(--ink); }
+  button.today { border: 0; font: inherit; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .todayLink { color: var(--accent); }
+  .soon { padding: 14px 16px 6px; }
+  .soon h2 { font-size: 20px; margin: 0 0 4px; }
+  .soonRow { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); }
+  .soonRow:first-child { border-top: 0; }
+  .soonD { width: 44px; text-align: center; flex: none; } .soonD b { display: block; font-size: 19px; font-family: "Cormorant Garamond", Georgia, serif; line-height: 1.1; } .soonD span { font-size: 11px; color: var(--muted); text-transform: uppercase; }
+  .soonX { flex: 1; min-width: 0; } .soonX div { font-weight: 500; } .soonX small { color: var(--muted); }
+  .soonIn { font-size: 12.5px; color: var(--accent); font-weight: 600; white-space: nowrap; }
+  dialog#syn { border: 0; padding: 0; border-radius: 18px; width: calc(100% - 24px); max-width: 620px; max-height: 86vh; background: var(--card); color: var(--ink); box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+  dialog#syn::backdrop { background: rgba(20,10,8,.45); }
+  .synHead { position: sticky; top: 0; background: var(--card); display: flex; align-items: center; gap: 6px; padding: 12px 10px; border-bottom: 1px solid var(--line); }
+  .synT { flex: 1; text-align: center; } .synT div { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 700; font-size: 22px; } .synT small { color: var(--muted); }
+  .synNav, .synX { border: 0; background: var(--bg); color: var(--ink); width: 38px; height: 38px; border-radius: 50%; font-size: 22px; line-height: 1; cursor: pointer; flex: none; }
+  .synX { background: transparent; color: var(--muted); }
+  .synBody { padding: 6px 18px 20px; overflow: auto; max-height: calc(86vh - 70px); }
+  .synBody .note { margin: 12px 0 4px; font-size: 13px; }
+  .synItem { padding: 14px 0; border-top: 1px solid var(--line); } .synItem:first-of-type { border-top: 0; }
+  .synItem h3 { font-size: 16.5px; margin: 0 0 6px; } .synItem p { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.55; }
   .how details > summary { list-style: none; display: flex; justify-content: space-between; align-items: center; color: var(--ink); }
   .how details > summary::-webkit-details-marker { display: none; }
   .how details > summary::after { content: "Show"; color: var(--accent); font-size: 13px; }
@@ -149,8 +169,23 @@
     <img src="logo-app.svg" alt="Coptic cross with a calendar" width="88" height="88" style="display:block;margin:0 auto">
     <h1>Coptic Feast Calendar</h1>
     <p>Pick the saints, feasts and fasts you want, then add them all to your calendar.</p>
-    <div class="today" id="today"></div>
+    <button class="today" id="today" type="button" aria-haspopup="dialog"><span id="todayText"></span> <span class="todayLink">· Today's saints ›</span></button>
   </header>
+
+  <section class="soon" id="soon" hidden>
+    <h2>Coming up</h2>
+    <div id="soonList"></div>
+  </section>
+
+  <dialog id="syn" aria-labelledby="synTitle">
+    <div class="synHead">
+      <button class="synNav" id="synPrev" type="button" aria-label="Previous day">‹</button>
+      <div class="synT"><div id="synTitle"></div><small id="synSub"></small></div>
+      <button class="synNav" id="synNext" type="button" aria-label="Next day">›</button>
+      <button class="synX" id="synClose" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="synBody" id="synBody"></div>
+  </dialog>
 
   <section class="how">
     <details id="how" open>
@@ -330,6 +365,15 @@
     return jdnToDate(1825029 + 365 * (cy - 1) + Math.floor(cy / 4) + 30 * (cm - 1) + cd);
   }
   const isCopticLeap = (cy) => cy % 4 === 3;
+  // Gregorian (UTC midnight) -> { cy, cm, cd }
+  function dateToCoptic(d) {
+    const jdn = Math.floor(d.getTime() / 86400000) + 2440588; // days since 1970-01-01 + JDN of that day
+    const start = (cy) => 1825029 + 365 * (cy - 1) + Math.floor(cy / 4) + 1;
+    let cy = Math.floor((4 * (jdn - 1825030) + 1463) / 1461);
+    if (start(cy) > jdn) cy--; if (start(cy + 1) <= jdn) cy++;
+    const day = jdn - start(cy);
+    return { cy, cm: Math.floor(day / 30) + 1, cd: (day % 30) + 1 };
+  }
   function addDays(d, n) { return new Date(d.getTime() + n * 86400000); }
   function ymd(d) { return d.toISOString().slice(0, 10); }
 
@@ -801,7 +845,7 @@
   }
 
   const GROUP_NAMES = GROUPS.map((g) => g[0]);
-  const api = { MONTHS, CATEGORIES, GROUP_NAMES, copticToDate, pascha, fixedOccurrences, flattenSaints, buildGroups, groupIds, buildSeries, matches, buildEvents, toICS, ymd, copticLabel };
+  const api = { MONTHS, CATEGORIES, GROUP_NAMES, dateToCoptic, copticToDate, pascha, fixedOccurrences, flattenSaints, buildGroups, groupIds, buildSeries, matches, buildEvents, toICS, ymd, copticLabel };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.CopticCore = api;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -819,20 +863,40 @@
   try { Object.assign(state, JSON.parse(localStorage.getItem("cfc-state") || "{}")); } catch (e) {}
   const save = () => { try { localStorage.setItem("cfc-state", JSON.stringify(state)); } catch (e) {} };
 
-  const data = await fetch("saints.json").then((r) => r.json());
+  const dataP = fetch("saints.json").then((r) => r.json());
+  const now = new Date(); const todayUTC = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  const DAYMS = 86400e3;
+
+  // Today's Coptic date (no need to wait for the saint list)
+  const tc = C.dateToCoptic(todayUTC);
+  $("todayText").textContent = "Today is " + C.copticLabel(tc.cm, tc.cd) + ", " + tc.cy + " A.M.";
+
+  // Coming up: the next few Church days
+  (function () {
+    const y = now.getFullYear();
+    // Major saint feasts shown alongside Church days
+    const BIG = [
+      [3, 12, "Archangel Michael – Annual Feast"], [10, 12, "Archangel Michael – Consecration of His Church"],
+      [9, 1, "St. Mary – Nativity"], [5, 21, "St. Mary – Departure"],
+      [8, 23, "St. George – Martyrdom"], [8, 30, "St. Mark the Apostle – Martyrdom"],
+      [3, 15, "St. Mina – Martyrdom"], [3, 25, "St. Abu Sefein – Martyrdom"],
+      [5, 22, "St. Antony the Great – Departure"], [5, 13, "St. Demiana – Martyrdom"],
+      [1, 2, "St. John the Baptist – Martyrdom"], [10, 30, "St. John the Baptist – Nativity"],
+    ];
+    const saintsEv = BIG.flatMap(([cm, cd, title]) => C.fixedOccurrences(cm, cd, y, y + 1).map((o) => ({ date: o.date, title, coptic: C.copticLabel(cm, cd) })));
+    const ev = C.buildEvents({ saints: [], saintIds: [], categories: ["major", "minor", "fasts", "other"], startYear: y, endYear: y + 1 })
+      .concat(saintsEv).filter((e) => e.date >= todayUTC).sort((a, b) => a.date - b.date).slice(0, 3);
+    if (!ev.length) return;
+    const rel = (d) => { const n = Math.round((d - todayUTC) / DAYMS); return n === 0 ? "Today" : n === 1 ? "Tomorrow" : n < 21 ? "in " + n + " days" : "in " + Math.round(n / 7) + " weeks"; };
+    $("soonList").innerHTML = ev.map((e) => `<div class="soonRow"><div class="soonD"><b>${e.date.getUTCDate()}</b><span>${e.date.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" })}</span></div>
+      <div class="soonX"><div>${e.title}</div><small>${e.date.toLocaleDateString("en-US", { weekday: "long", timeZone: "UTC" })}${e.coptic ? " · " + e.coptic : ""}</small></div><div class="soonIn">${rel(e.date)}</div></div>`).join("");
+    $("soon").hidden = false;
+  })();
+
+  const data = await dataP;
   const saints = C.flattenSaints(data);
   const byId = new Map(saints.map((s) => [s.id, s]));
   const groups = C.buildGroups(saints);
-
-  const now = new Date(); const todayUTC = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
-  // Today's Coptic date
-  (function () {
-    for (let cm = 1; cm <= 13; cm++) for (let cd = 1; cd <= 30; cd++) {
-      if (cm === 13 && cd > 6) break;
-      const o = C.fixedOccurrences(cm, cd, now.getFullYear(), now.getFullYear()).find((o) => C.ymd(o.date) === C.ymd(todayUTC));
-      if (o) { $("today").textContent = "Today is " + C.copticLabel(cm, cd) + ", " + o.cy + " A.M."; return; }
-    }
-  })();
   function nextDate(s) {
     const occ = C.fixedOccurrences(s.cm, s.cd, now.getFullYear(), now.getFullYear() + 1).find((o) => o.date >= todayUTC);
     if (!occ) return "";
@@ -1121,7 +1185,7 @@
     set("apostles", `<b>The next Apostles' Fast is ${fmt(A.s)} to ${fmt(A.e)}.</b>`);
     const M1 = nextFixed(12, 15); const M0 = C.fixedOccurrences(12, 1, M1.date.getUTCFullYear(), M1.date.getUTCFullYear())[0];
     set("stmary", `<b>The next Fast of St. Mary is ${fmt(M0.date)} to ${fmt(M1.date)}.</b>`);
-    const t = $("today").textContent.replace(/^Today is /, "");
+    const t = $("todayText").textContent.replace(/^Today is /, "");
     if (t) set("today", `<b>Today is ${t}</b> (Anno Martyrum, the Year of the Martyrs).`);
   })();
   if (location.hash === "#about") $("faqBox").open = true;
@@ -1146,6 +1210,32 @@
       groups.sort((a, b) => (rank.has(a.name) ? rank.get(a.name) : 1e3 + base.get(a.name)) - (rank.has(b.name) ? rank.get(b.name) : 1e3 + base.get(b.name)));
       renderGroups();
     } catch (e) { /* keep the usual order */ }
+  })();
+
+  // Today's saints (Synaxarium) pop-up, with previous / next day
+  (function () {
+    const dlg = $("syn"); let day = todayUTC;
+    const byDay = new Map();
+    for (const s of saints) { const k = s.cm + "-" + s.cd; if (!byDay.has(k)) byDay.set(k, []); byDay.get(k).push(s); }
+    const esc = (t) => String(t).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+    function show() {
+      const c = C.dateToCoptic(day);
+      const list = byDay.get(c.cm + "-" + c.cd) || [];
+      const isToday = +day === +todayUTC;
+      $("synTitle").textContent = C.copticLabel(c.cm, c.cd);
+      $("synSub").textContent = (isToday ? "Today, " : "") + day.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "UTC" });
+      $("synBody").innerHTML = (isToday ? `<p class="note">The Coptic day begins at sunset, so this evening the Church already remembers tomorrow's saints. Tap › to see them.</p>` : "") +
+        (list.length ? list.map((s) => `<div class="synItem"><h3>${esc(s.name)}</h3><p>${esc(s.summary || "")}</p></div>`).join("")
+          : `<p class="m" style="padding:16px 0">No commemorations listed for this day.</p>`);
+      $("synBody").scrollTop = 0;
+    }
+    const open = () => { day = todayUTC; show(); if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", ""); };
+    $("today").onclick = open;
+    $("synPrev").onclick = () => { day = new Date(day - DAYMS); show(); };
+    $("synNext").onclick = () => { day = new Date(+day + DAYMS); show(); };
+    $("synClose").onclick = () => dlg.close();
+    dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+    if (location.hash === "#todays-saints") open();
   })();
 
   if (sub || new URLSearchParams(location.search).get("edit")) $("how").open = false;
