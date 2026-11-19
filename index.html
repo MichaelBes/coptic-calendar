@@ -1129,6 +1129,22 @@
     document.querySelectorAll(".email-link").forEach((a) => { a.href = "mailto:" + addr; a.textContent = addr; });
   })();
 
+  // Put the most-picked saint shortcuts first (falls back to the usual order)
+  (async function () {
+    const API0 = ((window.CFC_CONFIG && window.CFC_CONFIG.api) || "").replace(/\/+$/, "");
+    if (!API0) return;
+    try {
+      const r = await fetch(API0 + "/api/popular");
+      if (!r.ok) return;
+      const { ready, order } = await r.json();
+      if (!ready || !order || !order.length) return;
+      const rank = new Map(order.map((n, i) => [n, i]));
+      const base = new Map(groups.map((g, i) => [g.name, i]));
+      groups.sort((a, b) => (rank.has(a.name) ? rank.get(a.name) : 1e3 + base.get(a.name)) - (rank.has(b.name) ? rank.get(b.name) : 1e3 + base.get(b.name)));
+      renderGroups();
+    } catch (e) { /* keep the usual order */ }
+  })();
+
   if (sub || new URLSearchParams(location.search).get("edit")) $("how").open = false;
   if (API) {
     const edit = new URLSearchParams(location.search).get("edit");
