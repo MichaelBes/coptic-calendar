@@ -80,6 +80,14 @@
   .row input { margin-top: 3px; accent-color: var(--accent); width: 18px; height: 18px; flex: none; }
   .row .n { font-weight: 500; } .row .m { color: var(--muted); font-size: 12.5px; }
   .row .s { color: var(--muted); font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 2px; }
+  .row .s.open { display: block; -webkit-line-clamp: unset; overflow: visible; color: var(--ink); line-height: 1.55; }
+  .rm { background: none; border: 0; color: var(--accent); font: inherit; font-size: 13px; font-weight: 600; padding: 4px 0 0; cursor: pointer; }
+  .picks { margin-top: 16px; }
+  .picksHead { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+  .pickTags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pickTag { display: inline-flex; align-items: center; gap: 8px; background: var(--accent-soft); color: var(--ink); border-radius: 14px; padding: 7px 7px 7px 12px; font-size: 13.5px; line-height: 1.3; max-width: 100%; }
+  .pickTag span small { color: var(--muted); white-space: nowrap; }
+  .pickTag button { border: 0; background: var(--accent); color: #fff; width: 22px; height: 22px; border-radius: 50%; font-size: 14px; line-height: 1; cursor: pointer; flex: none; }
   .badge { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 6px; background: var(--gold-soft); color: var(--gold); margin-left: 6px; vertical-align: 1px; }
   .row.series .n::after { content: ""; }
   .more { background: none; border: 0; color: var(--accent); font: inherit; font-size: 13px; padding: 4px 0 0; cursor: pointer; }
@@ -212,6 +220,7 @@
     <h2>Saints</h2>
     <p class="sub">Tap a saint to add all their feasts and monthly commemorations, or search every day of the Synaxarium.</p>
     <div class="chips" id="groups"></div>
+    <div class="picks" id="picks" hidden><div class="picksHead">Your picks</div><div class="pickTags" id="pickTags"></div></div>
     <input class="search" id="q" type="search" placeholder="Search saints, e.g. Kyrillos, Abanoub, Martyr…" autocomplete="off">
     <div class="count" id="count"></div>
     <div class="list" id="list"></div>
@@ -939,11 +948,13 @@
   const open = new Set();
   const ord = (n) => n + (n % 10 === 1 && n !== 11 ? "st" : n % 10 === 2 && n !== 12 ? "nd" : n % 10 === 3 && n !== 13 ? "rd" : "th");
 
+  const openStory = new Set();
   function saintRow(s, sel, sub) {
     return `<label class="row"><input type="checkbox" data-id="${s.id}" ${sel.has(s.id) ? "checked" : ""}>
       <span><div class="n">${sub ? C.copticLabel(s.cm, s.cd) : s.name}${s.hasHymn && !sub ? '<span class="badge">hymns</span>' : ""}</div>
       <div class="m">${sub ? "next " + nextDate(s) : C.copticLabel(s.cm, s.cd) + " · next " + nextDate(s)}${!sub && s.source !== s.name ? ` · <i>${s.source}</i>` : ""}</div>
-      ${sub ? "" : `<div class="s">${s.summary}</div>`}</span></label>`;
+      ${sub ? "" : `<div class="s${openStory.has(s.id) ? " open" : ""}">${s.summary}</div>` +
+        (s.summary.length > 120 ? `<button class="rm" type="button" data-rm="${s.id}">${openStory.has(s.id) ? "Show less" : "Read more"}</button>` : "")}</span></label>`;
   }
   function seriesRow(sr, sel) {
     const n = sr.members.filter((m) => sel.has(m.id)).length;
@@ -977,6 +988,14 @@
     $("list").querySelectorAll("[data-partial]").forEach((el) => (el.indeterminate = true));
   }
   $("list").addEventListener("click", (e) => {
+    const r = e.target.closest("[data-rm]");
+    if (r) {
+      e.preventDefault();
+      const id = r.dataset.rm; openStory.has(id) ? openStory.delete(id) : openStory.add(id);
+      const box = r.previousElementSibling; box.classList.toggle("open", openStory.has(id));
+      r.textContent = openStory.has(id) ? "Show less" : "Read more";
+      return;
+    }
     const b = e.target.closest("[data-toggle]"); if (!b) return;
     e.preventDefault();
     const k = b.dataset.toggle; open.has(k) ? open.delete(k) : open.add(k); renderList();
@@ -1006,7 +1025,26 @@
     return C.buildEvents({ saints, saintIds: [...selectedIds()], categories: state.cats, startYear: y, endYear: y + state.years - 1 })
       .filter((e) => e.date >= todayUTC);
   }
+  // "Your picks": saints picked one by one (shortcut buttons already show their own on/off state)
+  function renderPicks() {
+    const inGroups = new Set(); for (const g of groups) if (state.groups.includes(g.name)) g.ids.forEach((x) => inGroups.add(x));
+    const ids = state.ids.filter((x) => !inGroups.has(x) && byId.has(x));
+    const tags = [], seen = new Set();
+    for (const id of ids) {
+      const sr = seriesOf.get(id);
+      if (sr) {
+        if (seen.has(sr.name)) continue; seen.add(sr.name);
+        const mine = sr.members.filter((m) => ids.includes(m.id)).map((m) => m.id);
+        tags.push({ label: sr.name, date: mine.length < sr.members.length ? `${mine.length} of ${sr.members.length} months` : "every month", ids: mine });
+      } else { const s = byId.get(id); tags.push({ label: s.name, date: C.copticLabel(s.cm, s.cd), ids: [id] }); }
+    }
+    $("picks").hidden = !tags.length;
+    $("pickTags").innerHTML = tags.map((t, i) => `<span class="pickTag"><span>${t.label} <small>· ${t.date}</small></span><button type="button" data-pick="${i}" aria-label="Remove ${t.label.replace(/"/g, "")}">×</button></span>`).join("");
+    $("pickTags").onclick = (e) => { const b = e.target.closest("[data-pick]"); if (!b) return; setIds(tags[+b.dataset.pick].ids, false); renderList(); update(); };
+  }
+
   function update() {
+    renderPicks();
     save();
     const ev = events();
     const nSaints = selectedIds().size;
