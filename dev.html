@@ -11,6 +11,9 @@
 <link rel="manifest" href="site.webmanifest">
 <meta name="theme-color" content="#7b1e2b">
 <style>
+  /* iPhone: no auto-zoom when tapping into text boxes (needs 16px+), and no double-tap zoom (pinch zoom still works) */
+  html { -webkit-text-size-adjust: 100%; touch-action: manipulation; }
+  input, select, textarea { font-size: 16px !important; }
   :root { --bg:#f7f2ea; --card:#fffdf9; --ink:#2a1f1a; --muted:#7a6a5f; --line:#e8dccd; --accent:#7b1e2b; }
   @media (prefers-color-scheme: dark) { :root { --bg:#17120f; --card:#211a16; --ink:#f2e9df; --muted:#a8988a; --line:#3a2f28; --accent:#d8707d; } }
   * { box-sizing: border-box; }

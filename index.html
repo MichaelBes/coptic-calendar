@@ -34,6 +34,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  /* iPhone: no auto-zoom when tapping into text boxes (needs 16px+), and no double-tap zoom (pinch zoom still works) */
+  html { -webkit-text-size-adjust: 100%; touch-action: manipulation; }
+  input, select, textarea { font-size: 16px !important; }
   :root {
     --bg: #f7f2ea; --card: #fffdf9; --ink: #2a1f1a; --muted: #7a6a5f; --line: #e8dccd;
     --accent: #7b1e2b; --accent-soft: #f3e3e3; --gold: #b8892e; --gold-soft: #f6ecd6;
