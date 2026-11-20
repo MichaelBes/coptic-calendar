@@ -37,6 +37,7 @@
 <style>
   /* iPhone: no auto-zoom when tapping into text boxes (needs 16px+), and no double-tap zoom (pinch zoom still works) */
   html { -webkit-text-size-adjust: 100%; touch-action: manipulation; }
+  [hidden] { display: none !important; }
   input, select, textarea { font-size: 16px !important; }
   :root {
     --bg: #f7f2ea; --card: #fffdf9; --ink: #2a1f1a; --muted: #7a6a5f; --line: #e8dccd;
@@ -144,6 +145,10 @@
   .how ol { margin: 10px 0 6px; padding-left: 20px; } .how li { margin: 4px 0; }
   .how p { margin: 8px 0 0; font-size: 14px; color: var(--muted); } .how p b { color: var(--ink); }
   .danger { color: #b3261e !important; }
+  .step h2 { display: flex; align-items: center; gap: 10px; }
+  .step h2 .num { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; font: 600 16px Inter, system-ui, sans-serif; flex: none; }
+  .step > .sub { margin-left: 40px; }
+  #addBtns .btns .btn { padding: 15px 10px; font-size: 15.5px; }
   .linkbtn { background: none; border: 0; color: var(--accent); font: inherit; font-size: 13px; padding: 0; cursor: pointer; text-decoration: underline; }
   .range { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
   select { padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; }
@@ -199,96 +204,104 @@
     <details id="how" open>
       <summary><h2>How it works</h2></summary>
       <ol>
-        <li><b>Pick</b> your saints and the feasts, fasts and other days you want.</li>
-        <li>Tap <b>Create my calendar</b>, then <b>Add to Apple Calendar</b> or <b>Add to Google Calendar</b>.</li>
+        <li><b>Pick</b> the feasts and fasts, then your saints.</li>
+        <li>Tap <b>Add to Apple Calendar</b> or <b>Add to Google Calendar</b>.</li>
         <li><b>That's it.</b> Your calendar fills in for years ahead and stays up to date by itself.</li>
       </ol>
       <p><b>Change your saints anytime:</b> open any Coptic event in your calendar and tap its link (on iPhone, the link with <b>Open</b> under Location). Change your picks, tap <b>Save</b>, and your calendar updates within a few hours. There's no need to add it again.</p>
       <p><b>Evening reminders:</b> the Coptic day begins at sunset, so you can get a reminder the night before. On iPhone, turn <b>Remove Alerts</b> off when you subscribe.</p>
       <p><b>Google Calendar:</b> adding it works best from a computer. Google's phone app can't add calendars by link.</p>
-      <p><b>Remove it:</b> open your calendar here and tap <b>Delete my calendar</b> at the bottom, then unsubscribe in your calendar app.</p>
+      <p><b>Remove it:</b> open your calendar here and tap <b>Delete my calendar</b> in step 3, then unsubscribe in your calendar app.</p>
     </details>
   </section>
 
-  <section>
-    <h2>Church calendar</h2>
-    <p class="sub">Feasts and fasts, with movable dates worked out from Pascha.</p>
+  <section class="step">
+    <h2><span class="num">1</span>Feasts &amp; fasts</h2>
+    <p class="sub">Choose which Church days to add. Dates that move each year are worked out for you.</p>
     <div id="cats"></div>
   </section>
 
-  <section>
-    <h2>Saints</h2>
-    <p class="sub">Tap a saint to add all their feasts and monthly commemorations, or search every day of the Synaxarium.</p>
+  <section class="step">
+    <h2><span class="num">2</span>Your saints</h2>
+    <p class="sub">Tap a saint to add all their feast days, or search for any saint below.</p>
     <div class="chips" id="groups"></div>
+    <button class="linkbtn" id="moreSaints" type="button" hidden style="margin-top:10px"></button>
     <div class="picks" id="picks" hidden><div class="picksHead">Your picks</div><div class="pickTags" id="pickTags"></div></div>
     <input class="search" id="q" type="search" placeholder="Search saints, e.g. Kyrillos, Abanoub, Martyr…" autocomplete="off">
     <div class="count" id="count"></div>
     <div class="list" id="list"></div>
   </section>
 
-  <section id="add">
-    <h2>Add to calendar</h2>
+  <section id="add" class="step">
+    <h2><span class="num">3</span>Add to your calendar</h2>
     <p class="sub" id="summary"></p>
-    <label class="toggle" style="border-top:0;padding-top:0"><span class="t"><b>Remind me the evening before</b><span>Since the Coptic day begins at sunset</span></span>
+    <label class="toggle" style="border-top:0;padding-top:0"><span class="t"><b>Remind me the evening before</b><span>The Coptic day begins at sunset</span></span>
       <span class="sw"><input type="checkbox" id="eve"><i></i></span></label>
     <div class="range" id="eveOpts" hidden>
       <label for="eveHour">Remind at</label>
       <select id="eveHour"><option value="17">5:00 pm</option><option value="18">6:00 pm</option><option value="19">7:00 pm</option></select>
-      <div class="sub" style="margin:4px 0 0;width:100%"><b>Apple Calendar:</b> an alert the evening before each day.</div>
-      <div class="sub" style="margin:4px 0 0;width:100%"><b>Google Calendar</b> drops alerts from added calendars, so pick one:</div>
-      <div class="radios" id="gmode">
-        <label><input type="radio" name="gmode" value="events"> Add a short "Eve of…" entry that evening <span>Nothing to set up</span></label>
-        <label><input type="radio" name="gmode" value="self"> I'll set Google's reminder myself <span>No extra entries, one setting to change in Google</span></label>
-      </div>
     </div>
 
-    <div id="subBox">
-      <button class="btn primary wide" id="subscribe">Create my calendar</button>
-      <div class="note" id="deleted" hidden><b>Your calendar was deleted.</b> Its events will disappear from your calendar app within a day. To remove it completely:
-        <ul style="margin:6px 0 0;padding-left:18px"><li><b>iPhone:</b> open any Coptic event → <b>Unsubscribe from This Calendar</b>.</li>
-        <li><b>Google:</b> on calendar.google.com, find it under <b>Other calendars</b> → ⋮ → <b>Settings</b> → <b>Unsubscribe</b>.</li></ul>
-        <p style="margin:8px 0 0">You can make a new calendar anytime below.</p></div>
-      <p class="sub center" id="subStatus">Your calendar stays up to date. To change your saints later, open any Coptic event in your calendar and tap Change your saints.</p>
-      <div id="subLinks" hidden>
-        <div class="btns">
-          <a class="btn apple" id="subApple" href="#">Add to Apple Calendar</a>
-          <a class="btn google" id="subGoogle" href="#" target="_blank" rel="noopener">Add to Google Calendar</a>
-        </div>
-        <p class="sub center" id="alertTip" style="margin:10px 0 0"><b>iPhone tip:</b> on Apple's Subscribe screen, turn <b>Remove Alerts</b> off so your evening reminders come through.</p>
-        <div class="note">
-          <b>Your edit link</b>
-          <p style="margin:4px 0 8px">Use this link to change your saints later. Your calendar updates by itself, with no re-adding. You don't need to save it: every event in your Coptic calendar has a <b>Change your saints</b> link. Keep it private, since anyone with it can change your picks.</p>
-          <div class="linkrow"><input readonly id="editLink" aria-label="Your edit link"><button class="btn" id="copyEdit">Copy</button></div>
-          <details style="margin-top:10px"><summary>Using Google Calendar on a phone?</summary>
-            <p style="margin:6px 0">Google's phone app can't subscribe to calendars. On a computer, tap <b>Add to Google Calendar</b> above, or go to calendar.google.com → <b>Other calendars +</b> → <b>From URL</b> and paste this link:</p>
-            <div class="linkrow"><input readonly id="gFeed" aria-label="Google calendar link"><button class="btn" id="copyFeed">Copy</button></div>
-          </details>
-          <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:10px">
-            <button class="linkbtn" id="forget">Start a separate calendar on this device</button>
-            <button class="linkbtn danger" id="del">Delete my calendar</button>
+    <div class="note" id="deleted" hidden><b>Your calendar was deleted.</b> Its events will disappear from your calendar app within a day. To remove it completely:
+      <ul style="margin:6px 0 0;padding-left:18px"><li><b>iPhone:</b> open any Coptic event → <b>Unsubscribe from This Calendar</b>.</li>
+      <li><b>Google:</b> on calendar.google.com, find it under <b>Other calendars</b> → ⋮ → <b>Settings</b> → <b>Unsubscribe</b>.</li></ul>
+      <p style="margin:8px 0 0">You can make a new calendar anytime below.</p></div>
+
+    <div id="addBtns">
+      <div class="btns">
+        <button class="btn apple" id="addApple" type="button">Add to Apple Calendar</button>
+        <button class="btn google" id="addGoogle" type="button">Add to Google Calendar</button>
+      </div>
+      <p class="sub center" id="alertTip" style="margin:10px 0 0" hidden><b>iPhone tip:</b> on Apple's Subscribe screen, turn <b>Remove Alerts</b> off so your evening reminders come through.</p>
+      <div class="note" id="gPanel" hidden>
+        <b>Google Calendar</b>
+        <p style="margin:4px 0 8px">Adding works best on a computer. Google's phone app can't add calendars by link.</p>
+        <div id="gEve" hidden>
+          <p style="margin:0 0 6px">Google doesn't keep reminders from added calendars, so choose one:</p>
+          <div class="radios" id="gmode">
+            <label><input type="radio" name="gmode" value="events"> Add a short "Eve of…" entry that evening <span>Nothing to set up</span></label>
+            <label><input type="radio" name="gmode" value="self"> I'll set Google's reminder myself <span>No extra entries, one setting to change in Google</span></label>
           </div>
         </div>
+        <button class="btn google wide" id="gGo" type="button" style="margin-top:12px">Continue to Google Calendar</button>
+      </div>
+      <p class="sub center" id="subStatus"></p>
+      <button class="btn primary wide" id="subscribe" type="button" hidden>Save changes</button>
+      <div class="note" id="mine" hidden>
+        <b>Your calendar</b>
+        <p style="margin:4px 0 8px">Your edit link opens your calendar here on any device. Every event in your calendar also has a <b>Change your saints</b> link, so you don't need to save it. Keep it private.</p>
+        <div class="linkrow"><input readonly id="editLink" aria-label="Your edit link"><button class="btn" id="copyEdit" type="button">Copy</button></div>
+        <div style="margin-top:12px"><button class="linkbtn danger" id="del" type="button">Delete my calendar</button></div>
       </div>
     </div>
 
-    <details class="alt" id="dlBox">
-      <summary>Or download a one-time file instead</summary>
-      <p class="sub" style="margin-top:8px">A file is a snapshot. It won't update if you change your picks later.</p>
-      <div class="range">
-        <label for="years">Include</label>
-        <select id="years">
-          <option value="1">through the end of this year</option>
-          <option value="3">through 3 years</option>
-          <option value="5" selected>through 5 years</option>
-          <option value="10">through 10 years</option>
-        </select>
+    <details class="alt" id="moreOpts">
+      <summary>More options</summary>
+      <div id="subExtras" hidden>
+        <div class="note">
+          <p style="margin:0 0 6px"><b>Adding to Google on a computer later?</b> Go to calendar.google.com → <b>Other calendars +</b> → <b>From URL</b> and paste:</p>
+          <div class="linkrow"><input readonly id="gFeed" aria-label="Google calendar link"><button class="btn" id="copyFeed" type="button">Copy</button></div>
+          <div style="margin-top:12px"><button class="linkbtn" id="forget" type="button">Start a separate calendar on this device</button></div>
+        </div>
       </div>
-      <div class="btns">
-        <button class="btn apple" id="apple">Apple Calendar file</button>
-        <button class="btn google" id="google">Google Calendar file</button>
-        <button class="btn ghost" id="copy">Copy calendar file text (.ics)</button>
+      <div id="dlBox">
+        <p class="sub" style="margin-top:12px"><b>One-time file instead:</b> a snapshot that won't update if you change your picks later.</p>
+        <div class="range">
+          <label for="years">Include</label>
+          <select id="years">
+            <option value="1">through the end of this year</option>
+            <option value="3">through 3 years</option>
+            <option value="5" selected>through 5 years</option>
+            <option value="10">through 10 years</option>
+          </select>
+        </div>
+        <div class="btns">
+          <button class="btn apple" id="apple" type="button">Apple Calendar file</button>
+          <button class="btn google" id="google" type="button">Google Calendar file</button>
+          <button class="btn ghost" id="copy" type="button">Copy calendar file text (.ics)</button>
+        </div>
+        <div class="note" id="howto" hidden></div>
       </div>
-      <div class="note" id="howto" hidden></div>
     </details>
     <div class="preview" id="preview"></div>
   </section>
@@ -331,7 +344,7 @@
       <details class="q"><summary>Is it free?</summary>
         <p>Yes. It's free, with no account or sign-up.</p></details>
       <details class="q"><summary>How do I change or remove my saints later?</summary>
-        <p>Open any Coptic event in your calendar and tap its link. Your picks open here, where you can change them and tap Save, or tap Delete my calendar at the bottom.</p></details>
+        <p>Open any Coptic event in your calendar and tap its link. Your picks open here, where you can change them and tap Save changes, or tap Delete my calendar in step 3.</p></details>
       <details class="q"><summary>Found a mistake or have a suggestion?</summary>
         <p>Please let us know! If a date looks wrong, a saint is missing, or you have an idea, email <a class="email-link" href="#">contact at copticcalendar dot com</a>. We read every message.</p></details>
     </details>
@@ -925,10 +938,23 @@
   });
 
   // Popular saint groups
+  // Show a shorter list at first: saints anyone has picked, your own picks, and enough others to make 8
+  let pickedByOthers = new Set(), showAllSaints = false;
+  const FIRST = 8;
   function renderGroups() {
-    $("groups").innerHTML = groups.map((g, i) =>
+    let shown = groups.map((g, i) => ({ g, i }));
+    if (!showAllSaints) {
+      const keep = shown.filter(({ g }) => pickedByOthers.has(g.name) || state.groups.includes(g.name));
+      for (const x of shown) { if (keep.length >= FIRST) break; if (!keep.includes(x)) keep.push(x); }
+      shown = shown.filter((x) => keep.includes(x)); // keep the list's own order
+    }
+    $("groups").innerHTML = shown.map(({ g, i }) =>
       `<button class="chip" data-g="${i}" aria-pressed="${state.groups.includes(g.name)}">${g.name}<small>${g.ids.length}</small></button>`).join("");
+    const hidden = groups.length - shown.length;
+    $("moreSaints").hidden = !showAllSaints && hidden === 0;
+    $("moreSaints").textContent = showAllSaints ? "Show fewer saints" : `Show all saints (${hidden} more)`;
   }
+  $("moreSaints").onclick = () => { showAllSaints = !showAllSaints; renderGroups(); };
   $("groups").addEventListener("click", (e) => {
     const b = e.target.closest(".chip"); if (!b) return;
     const g = groups[+b.dataset.g];
@@ -1081,7 +1107,7 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   }
   $("eve").checked = state.eve; $("eveHour").value = String(state.eveHour); $("eveOpts").hidden = !state.eve;
-  $("eve").addEventListener("change", (e) => { state.eve = e.target.checked; $("eveOpts").hidden = !state.eve; update(); });
+  $("eve").addEventListener("change", (e) => { state.eve = e.target.checked; $("eveOpts").hidden = !state.eve; $("gEve").hidden = !state.eve; update(); });
   $("eveHour").addEventListener("change", (e) => { state.eveHour = +e.target.value; update(); });
   document.querySelectorAll('[name=gmode]').forEach((r) => {
     r.checked = r.value === state.gmode;
@@ -1121,39 +1147,55 @@
     return data;
   }
   function renderSub(n) {
-    if (!API) { $("subBox").hidden = true; $("dlBox").open = true; $("barText").innerHTML = `<b>${n}</b> events ready`; return; }
+    if (!API) { $("addBtns").hidden = true; $("moreOpts").open = true; $("barText").innerHTML = `<b>${n}</b> events ready`; return; }
     const has = !!sub, d = dirty();
-    $("subscribe").textContent = busy ? "Saving…" : !has ? "Create my calendar" : d ? "Save changes" : "Saved ✓";
-    $("subscribe").disabled = busy || !n || (has && !d);
-    $("subStatus").textContent = !has ? "Your calendar stays up to date. To change your saints later, open any Coptic event in your calendar and tap Change your saints."
-      : d ? "You have changes. Save them and your calendar updates by itself within a few hours."
-      : "Your calendar is up to date. Changes you save here show up on your calendar within a few hours.";
-    $("subLinks").hidden = !has;
+    $("addApple").disabled = $("addGoogle").disabled = $("gGo").disabled = busy || !n;
+    $("subscribe").hidden = !(has && d);
+    $("subscribe").disabled = busy;
+    $("subscribe").textContent = busy ? "Saving…" : "Save changes";
+    $("subStatus").textContent = busy ? "One moment…" : !has ? "One tap adds it. Your calendar then stays up to date by itself."
+      : d ? "You changed your picks. Tap Save changes and your calendar updates by itself within a few hours."
+      : "Your calendar is up to date ✓. To add it on another device, tap Apple or Google above.";
     $("alertTip").hidden = !state.eve;
+    $("gEve").hidden = !state.eve;
+    $("subExtras").hidden = !has;
+    $("mine").hidden = !has;
     if (has) {
-      const feed = (p) => `${API}/feed/${sub.id}/${p}.ics`;
-      const webcal = (u) => u.replace(/^https?:/, "webcal:");
-      $("subApple").href = webcal(feed("apple"));
-      $("subGoogle").href = "https://calendar.google.com/calendar/render?cid=" + encodeURIComponent(webcal(feed("google")));
-      $("gFeed").value = feed("google");
+      $("gFeed").value = feedUrl("google");
       $("editLink").value = location.origin + location.pathname + "?edit=" + sub.id + "." + sub.key;
     }
     $("barText").innerHTML = !has ? `<b>${n}</b> events ready` : d ? "<b>Unsaved changes</b>" : "Calendar up to date ✓";
     $("jump").textContent = d ? "Save" : "Add";
   }
-  async function saveSub() {
-    if (busy) return;
+  const feedUrl = (p) => `${API}/feed/${sub.id}/${p}.ics`;
+  const webcal = (u) => u.replace(/^https?:/, "webcal:");
+  // Creates the calendar the first time, or saves changes; returns true when the server has the latest picks
+  async function saveSub(quiet) {
+    if (busy) return false;
+    if (sub && !dirty()) return true;
     busy = true; update();
+    let ok = false;
     try {
       const body = { picks: picks() };
-      const created = !sub;
       if (!sub) { const r = await api("POST", "/api/subs", body); sub = { id: r.id, key: r.key }; $("deleted").hidden = true; }
       else await api("PUT", `/api/subs/${sub.id}?key=${encodeURIComponent(sub.key)}`, body);
-      savedJSON = JSON.stringify(body.picks); remember();
-      toast(created ? "Calendar created. Now tap Add to Apple or Google Calendar" : "Saved. Your calendar will update by itself");
+      savedJSON = JSON.stringify(body.picks); remember(); ok = true;
+      if (!quiet) toast("Saved. Your calendar will update by itself");
     } catch (e) { toast(e.message); }
     busy = false; update();
+    return ok;
   }
+  $("addApple").onclick = async () => {
+    $("gPanel").hidden = true;
+    if (await saveSub(true)) location.href = webcal(feedUrl("apple"));
+  };
+  $("addGoogle").onclick = () => { $("gPanel").hidden = !$("gPanel").hidden; if (!$("gPanel").hidden) $("gPanel").scrollIntoView({ behavior: "smooth", block: "nearest" }); };
+  $("gGo").onclick = async () => {
+    const w = window.open("", "_blank"); // open now so the browser doesn't block it
+    if (!(await saveSub(true))) { if (w) w.close(); return; }
+    const url = "https://calendar.google.com/calendar/render?cid=" + encodeURIComponent(webcal(feedUrl("google")));
+    if (w) w.location = url; else location.href = url;
+  };
   async function loadSub(id, key, fromLink) {
     try {
       const r = await api("GET", `/api/subs/${id}?key=${encodeURIComponent(key)}`);
@@ -1163,7 +1205,7 @@
       savedJSON = JSON.stringify(picks()); remember();
       // Refresh the controls to match the saved picks
       document.querySelectorAll("[data-cat]").forEach((el) => (el.checked = state.cats.includes(el.dataset.cat)));
-      $("eve").checked = state.eve; $("eveOpts").hidden = !state.eve; $("eveHour").value = String(state.eveHour);
+      $("eve").checked = state.eve; $("eveOpts").hidden = !state.eve; $("gEve").hidden = !state.eve; $("eveHour").value = String(state.eveHour);
       document.querySelectorAll("[name=gmode]").forEach((el) => (el.checked = el.value === state.gmode));
       if (fromLink) toast("Your calendar is loaded. Make changes and tap Save.");
     } catch (e) {
@@ -1172,7 +1214,7 @@
     }
     renderGroups(); renderList(); update();
   }
-  $("subscribe").onclick = saveSub;
+  $("subscribe").onclick = () => saveSub(false);
   $("copyEdit").onclick = async () => { try { await navigator.clipboard.writeText($("editLink").value); toast("Edit link copied"); } catch (e) { $("editLink").select(); } };
   $("copyFeed").onclick = async () => { try { await navigator.clipboard.writeText($("gFeed").value); toast("Calendar link copied"); } catch (e) { $("gFeed").select(); } };
   let delArmed = 0;
@@ -1190,9 +1232,9 @@
   $("forget").onclick = () => {
     if (!sub) return;
     sub = null; savedJSON = ""; remember();
-    toast("Start fresh: tap Create my calendar for a new, separate calendar"); update();
+    toast("Start fresh: tap Add to Apple or Google Calendar for a new, separate calendar"); update();
   };
-  $("jump").onclick = () => { if (dirty()) saveSub(); else $("add").scrollIntoView({ behavior: "smooth" }); };
+  $("jump").onclick = () => { if (dirty()) saveSub(false); else $("add").scrollIntoView({ behavior: "smooth" }); };
   window.addEventListener("beforeunload", (e) => { if (dirty()) { e.preventDefault(); e.returnValue = ""; } });
 
   renderGroups(); renderList(); update();
@@ -1241,7 +1283,8 @@
     try {
       const r = await fetch(API0 + "/api/popular");
       if (!r.ok) return;
-      const { ready, order } = await r.json();
+      const { ready, order, picked } = await r.json();
+      if (picked && picked.length) { pickedByOthers = new Set(picked); renderGroups(); }
       if (!ready || !order || !order.length) return;
       const rank = new Map(order.map((n, i) => [n, i]));
       const base = new Map(groups.map((g, i) => [g.name, i]));
